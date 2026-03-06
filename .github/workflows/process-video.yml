@@ -93,30 +93,19 @@ jobs:
       # ─────────────────────────────────────────────────────────────
       - name: Download video
         id: download
-        env:
-          YOUTUBE_COOKIES_B64: ${{ secrets.YOUTUBE_COOKIES_B64 }}
         run: |
           mkdir -p workspace/source workspace/audio workspace/clips workspace/captioned workspace/thumbnails
 
           echo "📥 Downloading video from: ${{ inputs.video_url }}"
 
-          # android client bypasses YouTube n-challenge JS entirely — no JS solver needed
-          # Always use android,web regardless of cookies
-          COOKIE_ARG=""
-          if [ -n "$YOUTUBE_COOKIES_B64" ]; then
-            echo "$YOUTUBE_COOKIES_B64" | base64 -d > /tmp/yt_cookies.txt
-            COOKIE_ARG="--cookies /tmp/yt_cookies.txt"
-            echo "🍪 Using YouTube cookies"
-          fi
-
+          # android + tv_embedded both bypass YouTube n-challenge JS — no JS solver, no cookies needed
           yt-dlp \
             --format "bestvideo[height<=1080]+bestaudio/best[height<=1080]/best" \
             --merge-output-format mp4 \
             --output "workspace/source/source.mp4" \
             --no-playlist \
             --socket-timeout 30 \
-            --extractor-args "youtube:player_client=android,web" \
-            $COOKIE_ARG \
+            --extractor-args "youtube:player_client=android,tv_embedded" \
             "${{ inputs.video_url }}"
 
           # Get video duration
