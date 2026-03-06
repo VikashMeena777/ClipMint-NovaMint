@@ -15,6 +15,8 @@ import {
     Clock,
     Film,
     Loader2,
+    RefreshCw,
+    AlertTriangle,
 } from "lucide-react";
 
 export default function JobDetailPage({
@@ -27,6 +29,7 @@ export default function JobDetailPage({
     const [job, setJob] = useState<Job | null>(null);
     const [clips, setClips] = useState<Clip[]>([]);
     const [loading, setLoading] = useState(true);
+    const [retrying, setRetrying] = useState(false);
 
     useEffect(() => {
         async function load() {
@@ -49,6 +52,41 @@ export default function JobDetailPage({
         }
         load();
     }, [jobId, supabase]);
+
+    const handleRetry = async () => {
+        if (!job) return;
+        setRetrying(true);
+
+        // Reset job status to queued
+        await supabase
+            .from("jobs")
+            .update({ status: "queued", progress: 0, error_message: null })
+            .eq("id", job.id);
+
+        setJob((j) => j ? { ...j, status: "queued", progress: 0, error_message: null } : j);
+
+        // Re-trigger the pipeline
+        try {
+            const res = await fetch("/api/trigger-pipeline", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    job_id: job.id,
+                    video_url: job.video_url,
+                    caption_style: job.caption_style,
+                    max_clips: job.max_clips,
+                }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                // Update UI with the error
+                setJob((j) => j ? { ...j, status: "failed", error_message: data.error } : j);
+            }
+        } catch {
+            setJob((j) => j ? { ...j, status: "failed", error_message: "Network error — could not reach trigger API" } : j);
+        }
+        setRetrying(false);
+    };
 
     if (loading) {
         return (
@@ -160,6 +198,54 @@ export default function JobDetailPage({
                     </button>
                 </div>
             </div>
+
+            {/* ─── Error box when job failed ─── */}
+            {job.status === "failed" && (
+                <div
+                    className="glass-card"
+                    style={{
+                        padding: 20,
+                        marginBottom: 32,
+                        border: "1px solid rgba(239,68,68,0.3)",
+                        background: "rgba(239,68,68,0.05)",
+                    }}
+                >
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                        <AlertTriangle size={20} style={{ color: "#EF4444", flexShrink: 0, marginTop: 2 }} />
+                        <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 14, fontWeight: 700, color: "#EF4444", marginBottom: 6 }}>
+                                Pipeline failed
+                            </div>
+                            <div
+                                style={{
+                                    fontFamily: "monospace",
+                                    fontSize: 12,
+                                    color: "var(--text-secondary)",
+                                    background: "rgba(0,0,0,0.3)",
+                                    padding: "8px 12px",
+                                    borderRadius: 6,
+                                    wordBreak: "break-all",
+                                    marginBottom: 12,
+                                }}
+                            >
+                                {job.error_message || "Unknown error — check GitHub Actions logs"}
+                            </div>
+                            <button
+                                className="btn-primary"
+                                onClick={handleRetry}
+                                disabled={retrying}
+                                style={{ padding: "8px 16px", fontSize: 13 }}
+                            >
+                                {retrying ? (
+                                    <><Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> Retrying...</>
+                                ) : (
+                                    <><RefreshCw size={14} /> Retry Pipeline</>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* ─── Progress bar for active jobs ─── */}
             {job.status !== "done" && job.status !== "failed" && (
