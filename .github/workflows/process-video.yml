@@ -94,14 +94,14 @@ jobs:
       - name: Download video
         id: download
         env:
-          YOUTUBE_COOKIES_B64: ${{ secrets.YOUTUBE_COOKIES_B64 }}
+          YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
         run: |
           mkdir -p workspace/source workspace/audio workspace/clips workspace/captioned workspace/thumbnails
 
           echo "📥 Downloading: ${{ inputs.video_url }}"
 
-          # Decode cookies for bot-detection bypass
-          echo "$YOUTUBE_COOKIES_B64" | base64 -d > /tmp/yt_cookies.txt
+          # Write raw cookie file (Netscape format) — no base64 decode
+          printf '%s' "$YOUTUBE_COOKIES" > /tmp/yt_cookies.txt
 
           yt-dlp \
             --cookies /tmp/yt_cookies.txt \
