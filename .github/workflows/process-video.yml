@@ -93,22 +93,25 @@ jobs:
       # ─────────────────────────────────────────────────────────────
       - name: Download video
         id: download
+        env:
+          YOUTUBE_COOKIES_B64: ${{ secrets.YOUTUBE_COOKIES_B64 }}
         run: |
           mkdir -p workspace/source workspace/audio workspace/clips workspace/captioned workspace/thumbnails
 
-          echo "📥 Downloading video from: ${{ inputs.video_url }}"
+          echo "📥 Downloading: ${{ inputs.video_url }}"
 
-          # android + tv_embedded both bypass YouTube n-challenge JS — no JS solver, no cookies needed
+          # Decode cookies for bot-detection bypass
+          echo "$YOUTUBE_COOKIES_B64" | base64 -d > /tmp/yt_cookies.txt
+
           yt-dlp \
-            --format "bestvideo[height<=1080]+bestaudio/best[height<=1080]/best" \
+            --cookies /tmp/yt_cookies.txt \
+            --format "bestvideo[height<=1080]+bestaudio/best" \
             --merge-output-format mp4 \
             --output "workspace/source/source.mp4" \
             --no-playlist \
-            --socket-timeout 30 \
-            --extractor-args "youtube:player_client=android,tv_embedded" \
+            --socket-timeout 60 \
             "${{ inputs.video_url }}"
 
-          # Get video duration
           DURATION=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 workspace/source/source.mp4)
           echo "duration=$DURATION" >> $GITHUB_OUTPUT
           echo "✅ Downloaded. Duration: ${DURATION}s"
