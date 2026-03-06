@@ -161,33 +161,70 @@ jobs:
           # Split audio into 25MB chunks if needed (Groq limit)
           FILE_SIZE=$(stat --printf="%s" workspace/audio/audio.wav)
           MAX_SIZE=25000000
+          SEGMENT_DURATION=300
 
           if [ "$FILE_SIZE" -gt "$MAX_SIZE" ]; then
             echo "⚠️ Audio file too large ($FILE_SIZE bytes), splitting into 5-min chunks..."
-            ffmpeg -i workspace/audio/audio.wav -f segment -segment_time 300 \
+            ffmpeg -i workspace/audio/audio.wav -f segment -segment_time $SEGMENT_DURATION \
               -c copy workspace/audio/chunk_%03d.wav -y -loglevel warning
           else
             cp workspace/audio/audio.wav workspace/audio/chunk_000.wav
           fi
 
-          # Transcribe each chunk and merge SRT
+          # Transcribe each chunk with timestamp offsetting
+          # FIX: Each chunk SRT starts at 00:00 but must be offset by chunk_index × segment_duration
           > workspace/audio/full_transcript.srt
+          CHUNK_INDEX=0
 
           for chunk in workspace/audio/chunk_*.wav; do
-            echo "  Transcribing $chunk..."
+            echo "  Transcribing $chunk (offset: $((CHUNK_INDEX * SEGMENT_DURATION))s)..."
 
+            # Transcribe to temp file
             curl -s -X POST "https://api.groq.com/openai/v1/audio/transcriptions" \
               -H "Authorization: Bearer $GROQ_API_KEY" \
               -F "file=@$chunk" \
               -F "model=whisper-large-v3-turbo" \
               -F "response_format=srt" \
               -F "language=en" \
-              >> workspace/audio/full_transcript.srt
+              > /tmp/chunk_raw.srt
 
+            # Offset timestamps by chunk_index × SEGMENT_DURATION using Python
+            OFFSET=$((CHUNK_INDEX * SEGMENT_DURATION))
+            python3 - <<PYOFFSET
+          import re, sys
+
+          offset = $OFFSET
+          srt = open('/tmp/chunk_raw.srt').read()
+
+          def shift_time(t, offset_sec):
+              h, m, rest = t.strip().split(':')
+              s, ms = rest.split(',')
+              total = int(h)*3600 + int(m)*60 + int(s) + int(ms)/1000 + offset_sec
+              h2 = int(total // 3600)
+              m2 = int((total % 3600) // 60)
+              s2 = int(total % 60)
+              ms2 = int(round((total % 1) * 1000))
+              return f'{h2:02d}:{m2:02d}:{s2:02d},{ms2:03d}'
+
+          def shift_srt(srt_text, offset_sec):
+              pattern = re.compile(
+                  r'(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})'
+              )
+              def replacer(m):
+                  return f'{shift_time(m.group(1), offset_sec)} --> {shift_time(m.group(2), offset_sec)}'
+              return pattern.sub(replacer, srt_text)
+
+          result = shift_srt(srt, offset)
+          with open('/tmp/chunk_offset.srt', 'w') as f:
+              f.write(result)
+          PYOFFSET
+
+            cat /tmp/chunk_offset.srt >> workspace/audio/full_transcript.srt
             echo "" >> workspace/audio/full_transcript.srt
+            CHUNK_INDEX=$((CHUNK_INDEX + 1))
           done
 
-          echo "✅ Transcription complete"
+          echo "✅ Transcription complete ($(ls workspace/audio/chunk_*.wav | wc -l) chunks, timestamps offset)"
           echo "srt_path=workspace/audio/full_transcript.srt" >> $GITHUB_OUTPUT
 
       - name: Update job status → analyzing
@@ -210,6 +247,7 @@ jobs:
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           MAX_CLIPS: ${{ inputs.max_clips }}
+          VIDEO_DURATION: ${{ steps.download.outputs.duration }}
         run: |
           echo "🧠 Analyzing transcript for viral moments..."
 
@@ -218,6 +256,7 @@ jobs:
 
           groq_key = os.environ["GROQ_API_KEY"]
           max_clips = os.environ.get("MAX_CLIPS", "10")
+          video_duration = float(os.environ.get("VIDEO_DURATION", "0") or "0")
 
           with open("workspace/audio/full_transcript.srt") as f:
               transcript = f.read()
@@ -233,11 +272,17 @@ jobs:
                   json.dump({"clips": fallback}, f, indent=2)
               exit(0)
 
-          prompt = f"""Analyze this SRT transcript and find the top {max_clips} viral-worthy moments.
+          duration_hint = f" The full video is {video_duration:.0f} seconds ({video_duration/60:.1f} minutes) long." if video_duration > 0 else ""
+
+          prompt = f"""Analyze this SRT transcript and find the top {max_clips} viral-worthy moments.{duration_hint}
+
+          IMPORTANT: The clips MUST be spread across the ENTIRE video duration (0s to {video_duration:.0f}s).
+          Do NOT cluster all clips at the start — find the best moments throughout the whole video.
+          Each clip must reference timestamps that actually appear in the transcript.
 
           For each moment, provide:
-          - start_time: start timestamp in seconds (float)
-          - end_time: end timestamp in seconds (float, clip should be 15-60 seconds)
+          - start_time: start timestamp in seconds (float, must be within video duration)
+          - end_time: end timestamp in seconds (float, clip should be 30-60 seconds long)
           - viral_score: 1-100 rating
           - title: catchy title for the clip
           - description: brief description
@@ -246,7 +291,7 @@ jobs:
 
           Return as JSON object with a "clips" key containing the array.
 
-          Transcript:
+          Transcript (first 8000 chars — clips should span the full video, not just this excerpt):
           {transcript[:8000]}"""
 
           response = requests.post(
@@ -342,7 +387,8 @@ jobs:
                       t_end = parse_srt_time(parts[1])
                   except:
                       continue
-                  if t_start >= start_sec and t_end <= end_sec:
+                  # FIX: include any subtitle that *starts* within the clip window
+                  if t_start >= (start_sec - 0.5) and t_start < end_sec:
                       new_start = format_srt_time(t_start - start_sec)
                       new_end = format_srt_time(t_end - start_sec)
                       text = '\n'.join(lines[2:]) if '-->' in lines[1] else '\n'.join(lines[1:])
