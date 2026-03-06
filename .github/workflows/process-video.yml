@@ -71,6 +71,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg imagemagick rclone
           pip install -U yt-dlp requests
+          # Install Deno (required for yt-dlp --js-runtimes deno)
+          curl -fsSL https://deno.land/install.sh | sh
+          echo "$HOME/.deno/bin" >> $GITHUB_PATH
 
       - name: Install Remotion dependencies
         working-directory: remotion-captions
@@ -104,13 +107,17 @@ jobs:
           printf '%s' "$YOUTUBE_COOKIES" > /tmp/yt_cookies.txt
 
           yt-dlp \
-            --cookies /tmp/yt_cookies.txt \
-            --extractor-args "youtube:player_client=ios" \
-            --format "bestvideo[height<=1080]+bestaudio/best" \
+            --js-runtimes deno \
+            --remote-components "ejs:github" \
+            --format "bestvideo[height<=1080]+bestaudio/best[height<=1080]/best" \
             --merge-output-format mp4 \
             --output "workspace/source/source.mp4" \
             --no-playlist \
             --socket-timeout 60 \
+            --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
+            --sleep-interval 1 \
+            --max-sleep-interval 3 \
+            $( [ -s /tmp/yt_cookies.txt ] && echo "--cookies /tmp/yt_cookies.txt" ) \
             "${{ inputs.video_url }}"
 
           DURATION=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 workspace/source/source.mp4)
