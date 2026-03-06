@@ -1,0 +1,26 @@
+{
+    "name": "clipmint-captions",
+    "version": "1.0.0",
+    "description": "ClipMint — Professional animated captions for short-form video clips",
+    "scripts": {
+        "start": "npx remotion studio",
+        "build": "npx remotion render CaptionedClip out/clip.mp4",
+        "render": "npx remotion render",
+        "upgrade": "npx remotion upgrade"
+    },
+    "dependencies": {
+        "@remotion/cli": "^4.0.0",
+        "@remotion/captions": "^4.0.0",
+        "@remotion/zod-types": "^4.0.0",
+        "remotion": "^4.0.0",
+        "remotion-subtitle": "^1.0.0",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "zod": "^3.23.8"
+    },
+    "devDependencies": {
+        "@remotion/eslint-config": "^4.0.0",
+        "@types/react": "^18.3.12",
+        "typescript": "^5.6.3"
+    }
+}
