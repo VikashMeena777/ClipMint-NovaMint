@@ -20,12 +20,18 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: |
           echo "🧠 Checking Groq API..."
+
+          if [ -z "$GROQ_API_KEY" ]; then
+            echo "⚠️ Groq API: GROQ_API_KEY secret not set"
+            exit 0
+          fi
+
           RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
             -X POST "https://api.groq.com/openai/v1/chat/completions" \
             -H "Authorization: Bearer $GROQ_API_KEY" \
             -H "Content-Type: application/json" \
             -d '{"model":"llama-3.3-70b-versatile","messages":[{"role":"user","content":"ping"}],"max_tokens":5}')
-          
+
           if [ "$RESPONSE" = "200" ]; then
             echo "✅ Groq API: OK"
           else
@@ -38,60 +44,46 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
           echo "🗄️ Checking Supabase..."
+
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_KEY" ]; then
+            echo "❌ Supabase: SUPABASE_URL or SUPABASE_SERVICE_KEY secret not set!"
+            echo "   Go to: https://github.com/${{ github.repository }}/settings/secrets/actions"
+            echo "   Add: SUPABASE_URL and SUPABASE_SERVICE_KEY"
+            exit 1
+          fi
+
           RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
             "$SUPABASE_URL/rest/v1/" \
             -H "apikey: $SUPABASE_SERVICE_KEY")
-          
+
           if [ "$RESPONSE" = "200" ]; then
             echo "✅ Supabase: OK"
           else
             echo "❌ Supabase: HTTP $RESPONSE"
           fi
 
-      - name: Check Google Drive quota
+      - name: Check rclone config
         env:
-          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+          RCLONE_CONF_B64: ${{ secrets.RCLONE_CONF_B64 }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
         run: |
-          echo "☁️ Checking Google Drive..."
-          
-          python3 << 'PYTHON'
-          import json, os
-          from google.oauth2 import service_account
-          from googleapiclient.discovery import build
-          
-          try:
-              key_json = json.loads(os.environ.get('GOOGLE_SERVICE_ACCOUNT_KEY', '{}'))
-              if not key_json:
-                  print("⚠️ Google Drive: No service account key configured")
-                  exit(0)
-              
-              creds = service_account.Credentials.from_service_account_info(
-                  key_json, scopes=['https://www.googleapis.com/auth/drive.file']
-              )
-              drive = build('drive', 'v3', credentials=creds)
-              about = drive.about().get(fields='storageQuota').execute()
-              
-              quota = about.get('storageQuota', {})
-              used = int(quota.get('usage', 0))
-              limit = int(quota.get('limit', 16106127360))  # 15GB default
-              
-              used_gb = used / (1024**3)
-              limit_gb = limit / (1024**3)
-              pct = (used / limit * 100) if limit > 0 else 0
-              
-              status = "✅" if pct < 80 else "⚠️" if pct < 95 else "❌"
-              print(f"{status} Google Drive: {used_gb:.2f}GB / {limit_gb:.2f}GB ({pct:.1f}%)")
-          except Exception as e:
-              print(f"⚠️ Google Drive check failed: {e}")
-          PYTHON
+          echo "☁️ Checking Google Drive (rclone)..."
+
+          if [ -z "$RCLONE_CONF_B64" ]; then
+            echo "⚠️ Google Drive: RCLONE_CONF_B64 secret not set"
+            exit 0
+          fi
+
+          if [ -z "$GDRIVE_FOLDER_ID" ]; then
+            echo "⚠️ Google Drive: GDRIVE_FOLDER_ID secret not set"
+            exit 0
+          fi
+
+          echo "✅ Google Drive: rclone config and folder ID are set"
 
       - name: Check GitHub Actions minutes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "⚙️ Checking GitHub Actions usage..."
-          
-          # Get billing info (only works for org/user level, not repo)
           echo "ℹ️ GitHub Actions minutes are tracked at the account level."
           echo "   Free tier: 2,000 minutes/month"
           echo "   Check: https://github.com/settings/billing"
@@ -102,7 +94,7 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
           echo "📊 Health check complete"
-          
+
           if [ -n "$DISCORD_WEBHOOK" ]; then
             curl -s -X POST "$DISCORD_WEBHOOK" \
               -H "Content-Type: application/json" \
