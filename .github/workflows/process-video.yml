@@ -74,7 +74,7 @@ jobs:
 
       - name: Install Remotion dependencies
         working-directory: remotion-captions
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Update job status → downloading
         env:
