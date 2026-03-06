@@ -184,29 +184,55 @@ async function handleCreateJob(
     const jobId = jobs[0].id;
 
     // Trigger GitHub Actions workflow
+    const dispatchUrl = `https://api.github.com/repos/${env.GITHUB_REPO}/actions/workflows/process-video.yml/dispatches`;
     try {
-        await fetch(
-            `https://api.github.com/repos/${env.GITHUB_REPO}/actions/workflows/process-video.yml/dispatches`,
-            {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${env.GITHUB_TOKEN}`,
-                    Accept: "application/vnd.github.v3+json",
-                    "Content-Type": "application/json",
+        const dispatchRes = await fetch(dispatchUrl, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+                Accept: "application/vnd.github.v3+json",
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                ref: "main",
+                inputs: {
+                    job_id: jobId,
+                    video_url: body.video_url,
+                    caption_style: captionStyle,
+                    max_clips: String(maxClips),
                 },
-                body: JSON.stringify({
-                    ref: "main",
-                    inputs: {
-                        job_id: jobId,
-                        video_url: body.video_url,
-                        caption_style: captionStyle,
-                        max_clips: String(maxClips),
+            }),
+        });
+
+        // Check if GitHub accepted the dispatch (204 = success, no body)
+        if (!dispatchRes.ok) {
+            const errText = await dispatchRes.text();
+            const errDetail = `GitHub API ${dispatchRes.status}: ${errText.slice(0, 300)}`;
+            console.error("GitHub dispatch failed:", errDetail, "URL:", dispatchUrl);
+
+            await fetch(
+                `${env.SUPABASE_URL}/rest/v1/jobs?id=eq.${jobId}`,
+                {
+                    method: "PATCH",
+                    headers: {
+                        apikey: env.SUPABASE_SERVICE_KEY,
+                        Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+                        "Content-Type": "application/json",
+                        Prefer: "return=minimal",
                     },
-                }),
-            }
-        );
-    } catch {
-        // Update job status to failed if trigger fails
+                    body: JSON.stringify({
+                        status: "failed",
+                        error_message: errDetail,
+                    }),
+                }
+            );
+            return errorResponse(errDetail, 500, env);
+        }
+    } catch (err) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        console.error("GitHub dispatch exception:", errMsg);
+
+        // Update job status to failed if trigger throws
         await fetch(
             `${env.SUPABASE_URL}/rest/v1/jobs?id=eq.${jobId}`,
             {
@@ -219,11 +245,11 @@ async function handleCreateJob(
                 },
                 body: JSON.stringify({
                     status: "failed",
-                    error_message: "Failed to trigger processing pipeline",
+                    error_message: `Pipeline trigger failed: ${errMsg}`,
                 }),
             }
         );
-        return errorResponse("Failed to trigger processing pipeline", 500, env);
+        return errorResponse(`Pipeline trigger failed: ${errMsg}`, 500, env);
     }
 
     // Increment videos_used
