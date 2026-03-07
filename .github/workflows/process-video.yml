@@ -163,6 +163,8 @@ jobs:
           MAX_SIZE=25000000
           SEGMENT_DURATION=300
 
+          echo "📁 Audio file size: $FILE_SIZE bytes"
+
           if [ "$FILE_SIZE" -gt "$MAX_SIZE" ]; then
             echo "⚠️ Audio file too large ($FILE_SIZE bytes), splitting into 5-min chunks..."
             ffmpeg -i workspace/audio/audio.wav -f segment -segment_time $SEGMENT_DURATION \
@@ -175,18 +177,43 @@ jobs:
           # FIX: Each chunk SRT starts at 00:00 but must be offset by chunk_index × segment_duration
           > workspace/audio/full_transcript.srt
           CHUNK_INDEX=0
+          TRANSCRIPTION_FAILED=0
 
           for chunk in workspace/audio/chunk_*.wav; do
-            echo "  Transcribing $chunk (offset: $((CHUNK_INDEX * SEGMENT_DURATION))s)..."
+            CHUNK_SIZE=$(stat --printf="%s" "$chunk")
+            echo "  Transcribing $chunk (size: ${CHUNK_SIZE} bytes, offset: $((CHUNK_INDEX * SEGMENT_DURATION))s)..."
 
-            # Transcribe to temp file
-            curl -s -X POST "https://api.groq.com/openai/v1/audio/transcriptions" \
+            # Transcribe — capture HTTP status separately from response body
+            HTTP_STATUS=$(curl -s -o /tmp/chunk_raw.srt -w "%{http_code}" \
+              -X POST "https://api.groq.com/openai/v1/audio/transcriptions" \
               -H "Authorization: Bearer $GROQ_API_KEY" \
               -F "file=@$chunk" \
               -F "model=whisper-large-v3-turbo" \
               -F "response_format=srt" \
-              -F "language=en" \
-              > /tmp/chunk_raw.srt
+              -F "language=en")
+
+            echo "  Groq HTTP status: $HTTP_STATUS"
+
+            # Check HTTP status
+            if [ "$HTTP_STATUS" != "200" ]; then
+              echo "  ❌ Groq API error (HTTP $HTTP_STATUS):"
+              cat /tmp/chunk_raw.srt
+              TRANSCRIPTION_FAILED=1
+              break
+            fi
+
+            # Validate response is SRT format (must contain ' --> ')
+            if ! grep -q ' --> ' /tmp/chunk_raw.srt; then
+              echo "  ❌ Groq response is not valid SRT format:"
+              cat /tmp/chunk_raw.srt
+              TRANSCRIPTION_FAILED=1
+              break
+            fi
+
+            SRT_LINES=$(wc -l < /tmp/chunk_raw.srt)
+            echo "  ✅ SRT received: ${SRT_LINES} lines"
+            echo "  First 5 lines of SRT:"
+            head -5 /tmp/chunk_raw.srt || true
 
             # Offset timestamps by chunk_index × SEGMENT_DURATION using Python
             OFFSET=$((CHUNK_INDEX * SEGMENT_DURATION))
@@ -224,7 +251,13 @@ jobs:
             CHUNK_INDEX=$((CHUNK_INDEX + 1))
           done
 
-          echo "✅ Transcription complete ($(ls workspace/audio/chunk_*.wav | wc -l) chunks, timestamps offset)"
+          if [ "$TRANSCRIPTION_FAILED" = "1" ]; then
+            echo "❌ Transcription failed — aborting pipeline"
+            exit 1
+          fi
+
+          TOTAL_SRT_LINES=$(wc -l < workspace/audio/full_transcript.srt)
+          echo "✅ Transcription complete ($(ls workspace/audio/chunk_*.wav | wc -l) chunks, ${TOTAL_SRT_LINES} SRT lines, timestamps offset)"
           echo "srt_path=workspace/audio/full_transcript.srt" >> $GITHUB_OUTPUT
 
       - name: Update job status → analyzing
@@ -261,16 +294,19 @@ jobs:
           with open("workspace/audio/full_transcript.srt") as f:
               transcript = f.read()
 
-          if not transcript.strip():
-              print("❌ Empty transcript — cannot analyze")
-              # Create a fallback: one clip of the whole video
-              fallback = [{"start_time": 0, "end_time": 30, "viral_score": 50,
-                          "title": "Full Clip", "description": "Full excerpt",
-                          "hashtags": ["#content", "#viral", "#shorts", "#reels", "#trending"],
-                          "hook": "Watch this!"}]
-              with open("workspace/clips/viral_moments.json", "w") as f:
-                  json.dump({"clips": fallback}, f, indent=2)
-              exit(0)
+          print(f"📄 Transcript length: {len(transcript)} chars")
+
+          # Check if transcript is empty OR is a JSON error response (not valid SRT)
+          is_empty = not transcript.strip()
+          is_json_error = transcript.strip().startswith('{') and '-->' not in transcript
+
+          if is_empty or is_json_error:
+              if is_json_error:
+                  print(f"❌ Transcript appears to be a JSON error response (not SRT): {transcript[:200]}")
+              else:
+                  print("❌ Empty transcript — cannot analyze")
+              # Fail loudly so we know the transcription step silently failed
+              exit(1)
 
           duration_hint = f" The full video is {video_duration:.0f} seconds ({video_duration/60:.1f} minutes) long." if video_duration > 0 else ""
 
