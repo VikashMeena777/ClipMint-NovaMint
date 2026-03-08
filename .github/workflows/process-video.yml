@@ -191,7 +191,7 @@ jobs:
               -F "model=whisper-large-v3-turbo" \
               -F "response_format=verbose_json" \
               -F "timestamp_granularities[]=word" \
-              -F "language=en")
+              )
 
             echo "  Groq HTTP status: $HTTP_STATUS"
 
@@ -555,8 +555,8 @@ jobs:
 
             # Extract a keyframe near 2 s as thumbnail.
             # -ss before -i = fast seek (key-frame accuracy, fine for thumbnails).
-            # -frames:v 1 takes exactly one frame; no -update flag needed.
-            ffmpeg -ss 2 -i "$clip" -frames:v 1 -q:v 2 \
+            # -frames:v 1 takes exactly one frame.
+            ffmpeg -ss 2 -i "$clip" -frames:v 1 -update 1 -q:v 2 \
               -vf "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2" \
               "workspace/thumbnails/${BASENAME}_thumb.jpg" \
               -y -loglevel warning || true
@@ -635,6 +635,26 @@ jobs:
                           "url": f"https://drive.google.com/file/d/{file_id}/view" if file_id else "",
                           "id": file_id
                       })
+
+          # List uploaded thumbnails so we can pair them with clips
+          thumb_result = subprocess.run(
+              ["rclone", "lsjson", f"{remote}:ClipMint/{job_id}/thumbnails/",
+               f"--drive-root-folder-id={folder_id}"],
+              capture_output=True, text=True
+          )
+          thumb_map = {}  # basename -> Drive URL
+          if thumb_result.returncode == 0:
+              for tf in json.loads(thumb_result.stdout):
+                  tid = tf.get("ID", "")
+                  if tid:
+                      # thumb file is e.g. clip_000_thumb.jpg -> base = clip_000
+                      base = tf["Name"].replace("_thumb.jpg", "").replace("_thumb.png", "")
+                      thumb_map[base] = f"https://drive.google.com/uc?export=view&id={tid}"
+
+          # Attach thumbnail_url to each clip entry
+          for c in clips:
+              base = c["name"].replace("_captioned.mp4", "")
+              c["thumbnail_url"] = thumb_map.get(base, "")
 
           manifest = {"job_id": job_id, "folder_id": folder_id, "clips": clips}
           with open("workspace/upload_manifest.json", "w") as f:
@@ -728,6 +748,7 @@ jobs:
                   "viral_score": moment.get("viral_score", 50),
                   "start_time": moment.get("start_time", 0),
                   "end_time": moment.get("end_time", 0),
+                  "thumbnail_url": clip.get("thumbnail_url", ""),
                   "status": "ready"
               }
 

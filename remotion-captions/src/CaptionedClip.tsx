@@ -11,7 +11,7 @@ import {
 } from "remotion";
 import { z } from "zod";
 import { zColor } from "@remotion/zod-types";
-import { createTikTokStyleCaptions, type Caption } from "@remotion/captions";
+import { type Caption } from "@remotion/captions";
 
 // ---------------------------------------------------------------------------
 // Schema — defines the props that can be set from Remotion Studio inspector
@@ -81,15 +81,39 @@ export const CaptionedClip: React.FC<CaptionedClipProps> = ({
         }
     }, [captionsData]);
 
-    // Create TikTok-style pages — each page = a short phrase shown together
-    const { pages } = useMemo(
-        () =>
-            createTikTokStyleCaptions({
-                captions,
-                combineTokensWithinMilliseconds: 1200,
-            }),
-        [captions]
-    );
+    // Build punchy 3-word-max pages instead of the default grouping which
+    // combined words within 1.2 s silence gaps — producing long paragraphs.
+    const pages = useMemo(() => {
+        const MAX_WORDS = 3;
+        const result: TikTokPage[] = [];
+
+        for (let i = 0; i < captions.length; i += MAX_WORDS) {
+            const chunk = captions.slice(i, i + MAX_WORDS);
+            if (chunk.length === 0) continue;
+
+            const first = chunk[0];
+            const last = chunk[chunk.length - 1];
+            const startMs = first.startMs;
+            // Duration extends to the *next* page start (or last word end)
+            const nextStart =
+                i + MAX_WORDS < captions.length
+                    ? captions[i + MAX_WORDS].startMs
+                    : last.endMs;
+            const durationMs = Math.max(100, nextStart - startMs);
+
+            result.push({
+                startMs,
+                durationMs,
+                tokens: chunk.map((c) => ({
+                    text: c.text,
+                    fromMs: c.startMs,
+                    toMs: c.endMs,
+                })),
+            });
+        }
+
+        return result;
+    }, [captions]);
 
     return (
         <AbsoluteFill
