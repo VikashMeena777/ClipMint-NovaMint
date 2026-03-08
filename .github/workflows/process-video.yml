@@ -70,7 +70,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg imagemagick rclone
-          pip install -U yt-dlp requests
+          pip install -U yt-dlp requests indic-transliteration
           # Install Deno (required for yt-dlp --js-runtimes deno)
           curl -fsSL https://deno.land/install.sh | sh
           echo "$HOME/.deno/bin" >> $GITHUB_PATH
@@ -275,6 +275,37 @@ jobs:
           TOTAL_WORDS=$(python3 -c "import json; print(len(json.load(open('workspace/audio/full_captions.json'))))")
           echo "✅ Transcription complete: ${TOTAL_WORDS} words across $(ls workspace/audio/chunk_*.wav | wc -l) chunk(s)"
           echo "captions_path=workspace/audio/full_captions.json" >> $GITHUB_OUTPUT
+
+      # ─────────────────────────────────────────────────────────────
+      # 4b. Transliterate Devanagari → Hinglish (Latin script)
+      # ─────────────────────────────────────────────────────────────
+      - name: Transliterate to Hinglish
+        run: |
+          echo "🔤 Transliterating Devanagari text to Hinglish (Latin script)..."
+
+          python3 << 'TRANSLITERATE'
+          import json, re
+          from indic_transliteration import sanscript
+          from indic_transliteration.sanscript import transliterate
+
+          with open('workspace/audio/full_captions.json') as f:
+              captions = json.load(f)
+
+          # Pattern to detect any Devanagari characters
+          devanagari_re = re.compile(r'[\u0900-\u097F]')
+
+          changed = 0
+          for c in captions:
+              text = c.get('text', '')
+              if devanagari_re.search(text):
+                  c['text'] = transliterate(text, sanscript.DEVANAGARI, sanscript.ITRANS)
+                  changed += 1
+
+          with open('workspace/audio/full_captions.json', 'w') as f:
+              json.dump(captions, f)
+
+          print(f"✅ Transliterated {changed}/{len(captions)} words from Devanagari to Latin script")
+          TRANSLITERATE
 
       - name: Update job status → analyzing
         env:
@@ -636,7 +667,7 @@ jobs:
                           "id": file_id
                       })
 
-          # List uploaded thumbnails so we can pair them with clips
+          # List uploaded thumbnails and make them publicly accessible
           thumb_result = subprocess.run(
               ["rclone", "lsjson", f"{remote}:ClipMint/{job_id}/thumbnails/",
                f"--drive-root-folder-id={folder_id}"],
@@ -647,9 +678,17 @@ jobs:
               for tf in json.loads(thumb_result.stdout):
                   tid = tf.get("ID", "")
                   if tid:
+                      # Make thumbnail publicly accessible via rclone link
+                      link_result = subprocess.run(
+                          ["rclone", "link",
+                           f"{remote}:ClipMint/{job_id}/thumbnails/{tf['Name']}",
+                           f"--drive-root-folder-id={folder_id}"],
+                          capture_output=True, text=True
+                      )
                       # thumb file is e.g. clip_000_thumb.jpg -> base = clip_000
                       base = tf["Name"].replace("_thumb.jpg", "").replace("_thumb.png", "")
-                      thumb_map[base] = f"https://drive.google.com/uc?export=view&id={tid}"
+                      # Use the thumbnail API for a direct-viewable image
+                      thumb_map[base] = f"https://drive.google.com/thumbnail?id={tid}&sz=w540"
 
           # Attach thumbnail_url to each clip entry
           for c in clips:
