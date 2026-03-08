@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const dashboardUrl = process.env.NEXT_PUBLIC_APP_URL || "https://clipmint.novamintnetworks.in";
+    const dashboardUrl = process.env.NEXT_PUBLIC_APP_URL || "https://novamintnetworks.in";
     const jobUrl = `${dashboardUrl}/dashboard/${job_id}`;
 
     // ── Send email based on status ──
