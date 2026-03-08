@@ -307,6 +307,29 @@ jobs:
           print(f"✅ Transliterated {changed}/{len(captions)} words from Devanagari to Latin script")
           TRANSLITERATE
 
+      # ─────────────────────────────────────────────────────────────
+      # 4c. Audio Energy Analysis (Tier 1.3)
+      # ─────────────────────────────────────────────────────────────
+      - name: Analyze audio energy
+        run: |
+          echo "🔊 Analyzing audio energy levels..."
+          ffmpeg -i workspace/audio/audio.wav \
+            -af "astats=metadata=1:reset=1,ametadata=print:key=lavfi.astats.Overall.RMS_level:file=workspace/audio/energy.txt" \
+            -f null - 2>/dev/null
+          echo "✅ Audio energy analysis complete"
+
+      # ─────────────────────────────────────────────────────────────
+      # 4d. Silence Detection for Clean Cut Points (Tier 1.4)
+      # ─────────────────────────────────────────────────────────────
+      - name: Detect silence gaps
+        run: |
+          echo "🔇 Detecting silence gaps for clean clip boundaries..."
+          ffmpeg -i workspace/audio/audio.wav \
+            -af "silencedetect=noise=-35dB:d=0.3" \
+            -f null - 2>&1 | grep "silence_" > workspace/audio/silences.txt || true
+          SILENCE_COUNT=$(wc -l < workspace/audio/silences.txt)
+          echo "✅ Found $SILENCE_COUNT silence markers"
+
       - name: Update job status → analyzing
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -329,83 +352,223 @@ jobs:
           MAX_CLIPS: ${{ inputs.max_clips }}
           VIDEO_DURATION: ${{ steps.download.outputs.duration }}
         run: |
-          echo "🧠 Analyzing transcript for viral moments..."
+          echo "🧠 Analyzing transcript for viral moments using sliding window and 2-pass scoring..."
 
           python3 << 'PYTHON_SCRIPT'
-          import json, os, requests
+          import json, os, requests, sys, time
 
           groq_key = os.environ["GROQ_API_KEY"]
-          max_clips = os.environ.get("MAX_CLIPS", "10")
+          max_clips = int(os.environ.get("MAX_CLIPS", "10"))
           video_duration = float(os.environ.get("VIDEO_DURATION", "0") or "0")
-
-          import sys
 
           with open("workspace/audio/full_captions.json") as f:
               captions = json.load(f)
 
           print(f"📄 Caption words loaded: {len(captions)}")
 
-          # Check we have actual captions
           if not captions:
               print("❌ Empty captions — cannot analyze")
-              exit(1)
+              sys.exit(1)
 
-          # Build a plain-text transcript for the AI prompt
-          transcript = ' '.join(c['text'] for c in captions)
+          def call_groq_with_retry(prompt, is_json=False, max_retries=3):
+              for attempt in range(max_retries + 1):
+                  try:
+                      response = requests.post(
+                          "https://api.groq.com/openai/v1/chat/completions",
+                          headers={
+                              "Authorization": f"Bearer {groq_key}",
+                              "Content-Type": "application/json"
+                          },
+                          json={
+                              "model": "llama-3.3-70b-versatile",
+                              "messages": [
+                                  {"role": "system", "content": "You are a viral content expert. Return ONLY valid JSON." if is_json else "You are a viral content expert."},
+                                  {"role": "user", "content": prompt}
+                              ],
+                              "temperature": 0.7,
+                              "max_tokens": 4096,
+                              "response_format": {"type": "json_object"} if is_json else None
+                          },
+                          timeout=120
+                      )
+                      
+                      if response.status_code == 200:
+                          return response.json()["choices"][0]["message"]["content"]
+                      
+                      if response.status_code in [429, 500, 502, 503] and attempt < max_retries:
+                          wait = 2 ** attempt * 5
+                          print(f"  ⚠️ Groq returned {response.status_code}, retrying in {wait}s (attempt {attempt + 1}/{max_retries})")
+                          time.sleep(wait)
+                          continue
+                      
+                      raise Exception(f"Groq API error {response.status_code}: {response.text[:300]}")
+                  except Exception as e:
+                      if attempt < max_retries:
+                          wait = 2 ** attempt * 5
+                          print(f"  ⚠️ Error calling Groq: {e}, retrying in {wait}s (attempt {attempt + 1}/{max_retries})")
+                          time.sleep(wait)
+                      else:
+                          raise e
 
+          # 1. Prepare sliding windows
+          WINDOW_SIZE = 6000
+          OVERLAP = 1000
+
+          transcript_text = ""
+          char_to_time = []
+          for c in captions:
+              start_char = len(transcript_text)
+              word = c['text'] + " "
+              transcript_text += word
+              for i in range(len(word)):
+                  char_to_time.append(c['startMs'] / 1000.0)
+
+          def get_time(char_idx):
+              if char_idx >= len(char_to_time): return char_to_time[-1] if char_to_time else 0
+              if char_idx < 0: return 0
+              return char_to_time[char_idx]
+
+          windows = []
+          for i in range(0, len(transcript_text), WINDOW_SIZE - OVERLAP):
+              chunk = transcript_text[i:i + WINDOW_SIZE]
+              if len(chunk.strip()) < 50: continue
+              start_sec = get_time(i)
+              end_sec = get_time(i + len(chunk))
+              windows.append({
+                  'text': chunk,
+                  'start_sec': start_sec,
+                  'end_sec': end_sec
+              })
+
+          print(f"🪟 Created {len(windows)} sliding windows for transcript analysis.")
+
+          all_moments = []
           duration_hint = f" The full video is {video_duration:.0f} seconds ({video_duration/60:.1f} minutes) long." if video_duration > 0 else ""
 
-          # Limit transcript text sent to LLM (plain-text, not SRT)
-          transcript_preview = transcript[:8000]
+          for idx, window in enumerate(windows):
+              print(f"🔍 Analyzing window {idx+1}/{len(windows)} (Time: {window['start_sec']:.1f}s - {window['end_sec']:.1f}s)")
+              
+              # PASS 1: Discovery
+              discovery_prompt = f"""Find ALL interesting moments in this transcript section.{duration_hint}
+              Be generous — include anything that MIGHT work as a standalone clip.
+              Allow clip lengths to be determined dynamically by the natural context, from 15 to 120 seconds.
+              
+              Transcript section:
+              {window['text']}
+              """
+              
+              print("  ▶️ Running Discovery pass...")
+              try:
+                  candidates_text = call_groq_with_retry(discovery_prompt, is_json=False)
+              except Exception as e:
+                  print(f"  ❌ Failed discovery pass: {e}")
+                  continue
 
-          prompt = f"""Analyze this transcript and find the top {max_clips} viral-worthy moments.{duration_hint}
+              # PASS 2: Ranking extraction
+              ranking_prompt = f"""Here are candidate moments extracted from a video transcript.
+              Rank them strictly using this rubric:
 
-          IMPORTANT: The clips MUST be spread across the ENTIRE video duration (0s to {video_duration:.0f}s).
-          Do NOT cluster all clips at the start — find the best moments throughout the whole video.
-          Each clip must reference actual spoken content from the transcript.
+              1. HOOK STRENGTH (1-20): Does it grab attention in the first 3 seconds?
+              2. STANDALONE VALUE (1-20): Does the clip make sense WITHOUT the full video?
+              3. EMOTIONAL PEAK (1-20): Is there humor, surprise, controversy, or deep insight?
+              4. SHAREABILITY (1-20): Would someone tag a friend or repost this?
+              5. COMPLETION (1-20): Does it have a natural start and end point?
 
-          For each moment, provide:
-          - start_time: start timestamp in seconds (float, must be within video duration)
-          - end_time: end timestamp in seconds (float, clip should be 30-60 seconds long)
-          - viral_score: 1-100 rating
-          - title: catchy title for the clip
-          - description: brief description
-          - hashtags: array of 5 relevant hashtags
-          - hook: compelling first-line hook caption
+              Return the top candidates as a JSON object with a "clips" key containing an array.
+              Each moment must have:
+              - start_time: start timestamp in seconds (float, naturally fitting the dialogue boundaries based on the text, within {window['start_sec']:.1f} to {window['end_sec']:.1f})
+              - end_time: end timestamp in seconds (float, clip should be dynamically sized to fit context, 15 to 120 secs)
+              - viral_score: total_score (sum of all 5 rubric points, 1-100 rating)
+              - title: catchy title for the clip
+              - description: brief description
+              - hashtags: array of 5 relevant hashtags
+              - hook: compelling first-line hook caption
+              
+              Candidates to rank:
+              {candidates_text}
+              """
+              
+              print("  ▶️ Running Ranking pass...")
+              try:
+                  ranking_json_str = call_groq_with_retry(ranking_prompt, is_json=True)
+                  parsed = json.loads(ranking_json_str)
+                  window_clips = parsed.get("clips", [])
+                  all_moments.extend(window_clips)
+              except Exception as e:
+                  print(f"  ❌ Failed ranking pass: {e}")
 
-          Return as JSON object with a "clips" key containing the array.
+          # Deduplicate moments that overlap significantly (> 5 seconds overlap)
+          final_moments = []
+          for m in all_moments:
+              try:
+                  m['start_time'] = float(m['start_time'])
+                  m['end_time'] = float(m['end_time'])
+                  m['viral_score'] = float(m.get('viral_score', 50))
+              except:
+                  continue
+              
+              is_duplicate = False
+              for fm in final_moments:
+                  overlap_start = max(m['start_time'], fm['start_time'])
+                  overlap_end = min(m['end_time'], fm['end_time'])
+                  overlap_dur = max(0, overlap_end - overlap_start)
+                  if overlap_dur > 5.0:
+                      # Merge/keep the highest score
+                      if m['viral_score'] > fm['viral_score']:
+                          fm.update(m)
+                      is_duplicate = True
+                      break
+              if not is_duplicate:
+                  final_moments.append(m)
 
-          Transcript (plain text, first 8000 chars — clips should span the full video):
-          {transcript_preview}"""
+          # ── Audio Energy Boosting (Tier 1.3) ──
+          # Parse energy data and boost scores for moments with high audio energy
+          import re, statistics
+          energy_data = []
+          try:
+              with open('workspace/audio/energy.txt') as ef:
+                  current_time = 0.0
+                  for line in ef:
+                      time_match = re.search(r'pts_time:(\d+\.?\d*)', line)
+                      if time_match:
+                          current_time = float(time_match.group(1))
+                      rms_match = re.search(r'RMS_level=(-?\d+\.?\d*)', line)
+                      if rms_match:
+                          rms = float(rms_match.group(1))
+                          energy_data.append({'time': current_time, 'rms_db': rms})
+          except FileNotFoundError:
+              print("  ⚠️ energy.txt not found — skipping energy boosting")
 
-          response = requests.post(
-              "https://api.groq.com/openai/v1/chat/completions",
-              headers={
-                  "Authorization": f"Bearer {groq_key}",
-                  "Content-Type": "application/json"
-              },
-              json={
-                  "model": "llama-3.3-70b-versatile",
-                  "messages": [
-                      {"role": "system", "content": "You are a viral content expert. Return ONLY valid JSON."},
-                      {"role": "user", "content": prompt}
-                  ],
-                  "temperature": 0.7,
-                  "max_tokens": 4096,
-                  "response_format": {"type": "json_object"}
-              },
-              timeout=60
-          )
+          if energy_data:
+              rms_values = [e['rms_db'] for e in energy_data if e['rms_db'] > -100]
+              if len(rms_values) >= 2:
+                  mean_rms = statistics.mean(rms_values)
+                  std_rms = statistics.stdev(rms_values)
+                  threshold = mean_rms + std_rms
+                  energy_peaks = [e for e in energy_data if e['rms_db'] > threshold]
+                  print(f"🔊 Audio energy: {len(energy_peaks)} peak seconds detected (threshold: {threshold:.1f} dB)")
 
-          data = response.json()
-          content = data["choices"][0]["message"]["content"]
+                  for moment in final_moments:
+                      start = moment['start_time']
+                      end = moment['end_time']
+                      peak_count = sum(1 for p in energy_peaks if start <= p['time'] <= end)
+                      energy_bonus = min(15, peak_count * 3)  # up to +15 points
+                      if energy_bonus > 0:
+                          old_score = moment['viral_score']
+                          moment['viral_score'] = min(100, moment['viral_score'] + energy_bonus)
+                          moment['energy_peaks'] = peak_count
+                          print(f"  ⚡ Boosted moment at {start:.1f}s: {old_score:.0f} → {moment['viral_score']:.0f} (+{energy_bonus}, {peak_count} peaks)")
+              else:
+                  print("  ⚠️ Not enough energy data for peak detection")
+
+          # Sort by score and take top N
+          final_moments.sort(key=lambda m: m['viral_score'], reverse=True)
+          clips = final_moments[:max_clips]
 
           with open("workspace/clips/viral_moments.json", "w") as f:
-              f.write(content)
+              json.dump({"clips": clips}, f, indent=2)
 
-          parsed = json.loads(content)
-          clips = parsed.get("clips", parsed) if isinstance(parsed, dict) else parsed
-          print(f"✅ Found {len(clips)} viral moments")
+          print(f"✅ Found {len(clips)} deduplicated viral moments across entire video.")
           PYTHON_SCRIPT
 
       - name: Update job status → clipping
@@ -425,10 +588,10 @@ jobs:
       # ─────────────────────────────────────────────────────────────
       - name: Split video into clips
         run: |
-          echo "✂️ Splitting video into clips..."
+          echo "✂️ Splitting video into clips (with silence-snapped boundaries)..."
 
           python3 << 'PYTHON'
-          import json, subprocess
+          import json, subprocess, re
 
           with open("workspace/clips/viral_moments.json") as f:
               data = json.loads(f.read())
@@ -438,6 +601,37 @@ jobs:
           # Load full Caption[] array
           with open("workspace/audio/full_captions.json") as f:
               full_captions = json.load(f)
+
+          # ── Load silence gaps (Tier 1.4) ──
+          silences = []
+          try:
+              with open('workspace/audio/silences.txt') as sf:
+                  current_start = None
+                  for line in sf:
+                      s_match = re.search(r'silence_start:\s*(\d+\.?\d*)', line)
+                      if s_match:
+                          current_start = float(s_match.group(1))
+                      e_match = re.search(r'silence_end:\s*(\d+\.?\d*)', line)
+                      if e_match and current_start is not None:
+                          silences.append((current_start, float(e_match.group(1))))
+                          current_start = None
+              print(f"  🔇 Loaded {len(silences)} silence gaps for boundary snapping")
+          except FileNotFoundError:
+              print("  ⚠️ silences.txt not found — skipping silence snapping")
+
+          def snap_to_silence(timestamp, direction='nearest', max_shift=3.0):
+              """Snap a timestamp to the nearest silence gap within max_shift seconds."""
+              if not silences:
+                  return timestamp
+              best = timestamp
+              best_dist = float('inf')
+              for s_start, s_end in silences:
+                  midpoint = (s_start + s_end) / 2
+                  dist = abs(midpoint - timestamp)
+                  if dist < best_dist and dist <= max_shift:
+                      best_dist = dist
+                      best = midpoint
+              return best
 
           def filter_captions(captions, start_sec, end_sec):
               """Filter captions to a time window and re-zero timestamps to clip start."""
@@ -458,15 +652,20 @@ jobs:
           for i, moment in enumerate(moments):
               start = float(moment["start_time"])
               end = float(moment["end_time"])
-              duration = end - start
 
-              # Enforce min 15s, max 60s clips
-              if duration < 15:
-                  end = start + 15
-                  duration = 15
-              elif duration > 60:
-                  end = start + 60
-                  duration = 60
+              # Snap boundaries to nearest silence gap (up to 3s shift)
+              original_start, original_end = start, end
+              start = snap_to_silence(start, max_shift=3.0)
+              end = snap_to_silence(end, max_shift=3.0)
+
+              # Safety: ensure minimum 10s clip after snapping
+              duration = end - start
+              if duration < 10:
+                  end = start + max(15, original_end - original_start)
+                  duration = end - start
+
+              if start != original_start or end != original_end:
+                  print(f"  🔇 Clip {i}: snapped {original_start:.1f}→{start:.1f}s, {original_end:.1f}→{end:.1f}s")
 
               output = f"workspace/clips/clip_{i:03d}.mp4"
 
@@ -481,6 +680,10 @@ jobs:
 
               subprocess.run(cmd, check=True)
               print(f"  ✅ Clip {i}: {start:.1f}s → {end:.1f}s ({duration:.1f}s)")
+
+              # Update moment metadata with snapped times
+              moment['start_time'] = start
+              moment['end_time'] = end
 
               # Filter Caption[] for this clip window and write .captions.json
               clip_captions = filter_captions(full_captions, start, end)
