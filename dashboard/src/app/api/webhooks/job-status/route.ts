@@ -37,8 +37,17 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Fetch job details from Supabase via REST ──
+    // MUST use service role key to bypass RLS (anon key has no auth context here)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!serviceKey) {
+      console.error("SUPABASE_SERVICE_ROLE_KEY env var is not set — cannot fetch job");
+      return NextResponse.json(
+        { error: "Server misconfiguration: missing service role key" },
+        { status: 500 }
+      );
+    }
 
     const jobRes = await fetch(
       `${supabaseUrl}/rest/v1/jobs?id=eq.${job_id}&select=id,user_id,video_url,clips_count`,
@@ -51,7 +60,9 @@ export async function POST(request: NextRequest) {
     );
 
     const jobs = await jobRes.json();
+    console.log(`Webhook job lookup: job_id=${job_id}, status=${jobRes.status}, results=${Array.isArray(jobs) ? jobs.length : 'non-array'}`);
     if (!jobs || jobs.length === 0) {
+      console.error(`Job not found: job_id=${job_id}, response:`, JSON.stringify(jobs));
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
