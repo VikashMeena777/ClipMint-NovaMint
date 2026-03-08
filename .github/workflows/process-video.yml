@@ -661,6 +661,14 @@ jobs:
               for f in files:
                   if f["Name"].endswith(".mp4"):
                       file_id = f.get("ID", "")
+                      # Make clip publicly accessible via rclone link
+                      if file_id:
+                          subprocess.run(
+                              ["rclone", "link",
+                               f"{remote}:ClipMint/{job_id}/clips/{f['Name']}",
+                               f"--drive-root-folder-id={folder_id}"],
+                              capture_output=True, text=True
+                          )
                       clips.append({
                           "name": f["Name"],
                           "url": f"https://drive.google.com/file/d/{file_id}/view" if file_id else "",
