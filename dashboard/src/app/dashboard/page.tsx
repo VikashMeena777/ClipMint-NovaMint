@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createClient } from "@/lib/supabase";
 import Link from "next/link";
-import type { Job } from "@/lib/types";
+import type { Job, JobStatus } from "@/lib/types";
 import { JOB_STATUS_LABELS } from "@/lib/types";
 import {
     Film,
@@ -14,13 +14,28 @@ import {
     CheckCircle2,
     AlertCircle,
     Clapperboard,
+    ChevronDown,
+    X,
 } from "lucide-react";
+
+type FilterOption = JobStatus | "all" | "processing";
+
+const FILTER_OPTIONS: { value: FilterOption; label: string; color: string }[] = [
+    { value: "all", label: "All Jobs", color: "var(--text-secondary)" },
+    { value: "queued", label: "Queued", color: "#6B7280" },
+    { value: "processing", label: "Processing", color: "#F59E0B" },
+    { value: "done", label: "Completed", color: "#10B981" },
+    { value: "failed", label: "Failed", color: "#EF4444" },
+];
 
 export default function JobsPage() {
     const supabase = createClient();
     const [jobs, setJobs] = useState<Job[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [statusFilter, setStatusFilter] = useState<FilterOption>("all");
+    const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+    const filterRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         async function loadJobs() {
@@ -63,11 +78,39 @@ export default function JobsPage() {
         return () => { supabase.removeChannel(channel); };
     }, []);
 
-    const filteredJobs = jobs.filter(
-        (j) =>
-            (j.video_url || "").toLowerCase().includes(search.toLowerCase()) ||
-            j.caption_style.toLowerCase().includes(search.toLowerCase())
-    );
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        function handleClickOutside(e: MouseEvent) {
+            if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+                setShowFilterDropdown(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const PROCESSING_STATUSES: JobStatus[] = ["downloading", "transcribing", "analyzing", "clipping", "captioning", "uploading"];
+
+    const filteredJobs = jobs.filter((j) => {
+        // Status filter
+        if (statusFilter !== "all") {
+            if (statusFilter === "processing") {
+                if (!PROCESSING_STATUSES.includes(j.status)) return false;
+            } else {
+                if (j.status !== statusFilter) return false;
+            }
+        }
+        // Search filter
+        if (search) {
+            const q = search.toLowerCase();
+            return (
+                (j.video_url || "").toLowerCase().includes(q) ||
+                j.caption_style.toLowerCase().includes(q) ||
+                (j.video_filename || "").toLowerCase().includes(q)
+            );
+        }
+        return true;
+    });
 
     const totalJobs = jobs.length;
     const processing = jobs.filter(
@@ -75,6 +118,8 @@ export default function JobsPage() {
     ).length;
     const completed = jobs.filter((j) => j.status === "done").length;
     const totalClips = jobs.reduce((sum, j) => sum + (j.clips_count || 0), 0);
+
+    const activeFilterLabel = FILTER_OPTIONS.find((f) => f.value === statusFilter);
 
     return (
         <div>
@@ -188,7 +233,7 @@ export default function JobsPage() {
                 ))}
             </div>
 
-            {/* Search */}
+            {/* Search + Filter */}
             <div
                 style={{
                     display: "flex",
@@ -215,9 +260,90 @@ export default function JobsPage() {
                         style={{ paddingLeft: 40 }}
                     />
                 </div>
-                <button className="btn-secondary" style={{ gap: 8 }}>
-                    <Filter size={16} /> Filter
-                </button>
+                <div ref={filterRef} style={{ position: "relative" }}>
+                    <button
+                        className="btn-secondary"
+                        onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                        style={{
+                            gap: 8,
+                            minWidth: 130,
+                            justifyContent: "center",
+                            border: statusFilter !== "all" ? "1px solid var(--accent-primary)" : undefined,
+                            background: statusFilter !== "all" ? "rgba(108,92,231,0.1)" : undefined,
+                        }}
+                    >
+                        <Filter size={16} />
+                        {statusFilter === "all" ? "Filter" : activeFilterLabel?.label}
+                        {statusFilter !== "all" ? (
+                            <X
+                                size={14}
+                                style={{ marginLeft: 4, cursor: "pointer" }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setStatusFilter("all");
+                                    setShowFilterDropdown(false);
+                                }}
+                            />
+                        ) : (
+                            <ChevronDown size={14} />
+                        )}
+                    </button>
+
+                    {/* Filter Dropdown */}
+                    {showFilterDropdown && (
+                        <div
+                            style={{
+                                position: "absolute",
+                                top: "calc(100% + 6px)",
+                                right: 0,
+                                minWidth: 180,
+                                background: "var(--bg-card)",
+                                border: "1px solid var(--border-subtle)",
+                                borderRadius: 12,
+                                padding: 6,
+                                zIndex: 50,
+                                boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+                            }}
+                        >
+                            {FILTER_OPTIONS.map((option) => (
+                                <button
+                                    key={option.value}
+                                    onClick={() => {
+                                        setStatusFilter(option.value);
+                                        setShowFilterDropdown(false);
+                                    }}
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 10,
+                                        width: "100%",
+                                        padding: "10px 14px",
+                                        borderRadius: 8,
+                                        border: "none",
+                                        background: statusFilter === option.value ? "rgba(108,92,231,0.15)" : "transparent",
+                                        color: statusFilter === option.value ? "var(--text-primary)" : "var(--text-secondary)",
+                                        cursor: "pointer",
+                                        fontSize: 13,
+                                        fontWeight: statusFilter === option.value ? 600 : 400,
+                                        transition: "all 0.15s ease",
+                                        textAlign: "left",
+                                    }}
+                                >
+                                    <span
+                                        style={{
+                                            width: 8,
+                                            height: 8,
+                                            borderRadius: "50%",
+                                            background: option.color,
+                                            flexShrink: 0,
+                                        }}
+                                    />
+                                    {option.label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Jobs list */}
@@ -261,7 +387,7 @@ export default function JobsPage() {
                             marginBottom: 8,
                         }}
                     >
-                        No jobs yet
+                        {statusFilter !== "all" ? "No matching jobs" : "No jobs yet"}
                     </h3>
                     <p
                         style={{
@@ -270,15 +396,19 @@ export default function JobsPage() {
                             marginBottom: 24,
                         }}
                     >
-                        Upload your first video to get started
+                        {statusFilter !== "all"
+                            ? "Try a different filter or clear your search"
+                            : "Upload your first video to get started"}
                     </p>
-                    <Link
-                        href="/dashboard/new"
-                        className="btn-primary"
-                        style={{ textDecoration: "none", gap: 8 }}
-                    >
-                        <Plus size={16} /> Upload Video
-                    </Link>
+                    {statusFilter === "all" && (
+                        <Link
+                            href="/dashboard/new"
+                            className="btn-primary"
+                            style={{ textDecoration: "none", gap: 8 }}
+                        >
+                            <Plus size={16} /> Upload Video
+                        </Link>
+                    )}
                 </div>
             ) : (
                 <div

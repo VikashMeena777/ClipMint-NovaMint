@@ -82,10 +82,10 @@ export default function JobDetailPage({
             });
             const data = await res.json();
             if (!res.ok) {
-                setJob((j) => j ? { ...j, status: "failed", error_message: data.error } : j);
+                setJob((j) => j ? { ...j, status: "failed", error_message: "Could not start processing. Please try again." } : j);
             }
         } catch {
-            setJob((j) => j ? { ...j, status: "failed", error_message: "Network error — could not reach trigger API" } : j);
+            setJob((j) => j ? { ...j, status: "failed", error_message: "Could not start processing. Please check your connection and try again." } : j);
         }
         setRetrying(false);
     };
@@ -288,21 +288,20 @@ export default function JobDetailPage({
                         <AlertTriangle size={20} style={{ color: "#EF4444", flexShrink: 0, marginTop: 2 }} />
                         <div style={{ flex: 1 }}>
                             <div style={{ fontSize: 14, fontWeight: 700, color: "#EF4444", marginBottom: 6 }}>
-                                Pipeline failed
+                                Processing failed
                             </div>
                             <div
                                 style={{
-                                    fontFamily: "monospace",
-                                    fontSize: 12,
+                                    fontSize: 13,
                                     color: "var(--text-secondary)",
-                                    background: "rgba(0,0,0,0.3)",
-                                    padding: "8px 12px",
-                                    borderRadius: 6,
-                                    wordBreak: "break-all",
+                                    background: "rgba(0,0,0,0.2)",
+                                    padding: "10px 14px",
+                                    borderRadius: 8,
                                     marginBottom: 12,
+                                    lineHeight: 1.5,
                                 }}
                             >
-                                {job.error_message || "Unknown error — check GitHub Actions logs"}
+                                {job.error_message || "Something went wrong while processing your video. Please try again or contact support."}
                             </div>
                             <button
                                 className="btn-primary"
@@ -313,7 +312,7 @@ export default function JobDetailPage({
                                 {retrying ? (
                                     <><Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> Retrying...</>
                                 ) : (
-                                    <><RefreshCw size={14} /> Retry Pipeline</>
+                                    <><RefreshCw size={14} /> Retry</>
                                 )}
                             </button>
                         </div>

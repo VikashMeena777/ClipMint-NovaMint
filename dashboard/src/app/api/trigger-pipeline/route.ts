@@ -60,13 +60,13 @@ export async function POST(request: NextRequest) {
             .from("jobs")
             .update({
                 status: "failed",
-                error_message: `Pipeline not configured: missing env vars: ${missing.join(", ")}`,
+                error_message: "Processing service is temporarily unavailable. Please try again later.",
             })
             .eq("id", job_id);
 
         return NextResponse.json({
             triggered: false,
-            message: `Pipeline trigger not configured. Missing: ${missing.join(", ")}`,
+            error: "Processing service is temporarily unavailable.",
         }, { status: 500 });
     }
 
@@ -93,19 +93,18 @@ export async function POST(request: NextRequest) {
 
         if (!dispatchRes.ok) {
             const errText = await dispatchRes.text();
-            const errDetail = `GitHub API ${dispatchRes.status}: ${errText.slice(0, 500)}`;
-            console.error("GitHub dispatch failed:", errDetail, "URL:", dispatchUrl);
+            console.error("GitHub dispatch failed:", `GitHub API ${dispatchRes.status}: ${errText.slice(0, 500)}`, "URL:", dispatchUrl);
 
             await supabase
                 .from("jobs")
                 .update({
                     status: "failed",
-                    error_message: errDetail,
+                    error_message: "Could not start video processing. Please try again.",
                 })
                 .eq("id", job_id);
 
             return NextResponse.json(
-                { error: errDetail },
+                { error: "Could not start video processing. Please try again." },
                 { status: 500 }
             );
         }
@@ -119,12 +118,12 @@ export async function POST(request: NextRequest) {
             .from("jobs")
             .update({
                 status: "failed",
-                error_message: `Trigger exception: ${errMsg}`,
+                error_message: "An unexpected error occurred. Please try again.",
             })
             .eq("id", job_id);
 
         return NextResponse.json(
-            { error: `Trigger exception: ${errMsg}` },
+            { error: "An unexpected error occurred. Please try again." },
             { status: 500 }
         );
     }

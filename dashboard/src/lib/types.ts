@@ -35,6 +35,12 @@ export interface Profile {
     clips_limit: number;
     videos_used: number;
     videos_limit: number;
+    notify_email: boolean;
+    notify_discord: boolean;
+    notify_job_complete: boolean;
+    notify_job_failed: boolean;
+    notify_weekly_report: boolean;
+    discord_webhook_url: string | null;
     created_at: string;
     updated_at: string;
 }

@@ -10,8 +10,10 @@ export const dynamic = "force-dynamic";
 /**
  * POST /api/webhooks/job-status
  *
- * Called by the GitHub Actions pipeline when a job completes or fails.
- * Sends an email notification to the user via Resend.
+ * Called by the processing pipeline when a job completes or fails.
+ * - Updates clips_used in the user's profile
+ * - Cleans up uploaded video files from Supabase Storage
+ * - Sends an email notification to the user via Resend
  *
  * Body: { job_id, status, error_message?, webhook_secret }
  */
@@ -37,20 +39,19 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Fetch job details from Supabase via REST ──
-    // MUST use service role key to bypass RLS (anon key has no auth context here)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!serviceKey) {
       console.error("SUPABASE_SERVICE_ROLE_KEY env var is not set — cannot fetch job");
       return NextResponse.json(
-        { error: "Server misconfiguration: missing service role key" },
+        { error: "Server misconfiguration" },
         { status: 500 }
       );
     }
 
     const jobRes = await fetch(
-      `${supabaseUrl}/rest/v1/jobs?id=eq.${job_id}&select=id,user_id,video_url,clips_count`,
+      `${supabaseUrl}/rest/v1/jobs?id=eq.${job_id}&select=id,user_id,video_url,clips_count,source_type`,
       {
         headers: {
           apikey: serviceKey,
@@ -67,6 +68,81 @@ export async function POST(request: NextRequest) {
     }
 
     const job = jobs[0];
+
+    // ── Update clips_used in user profile when job completes successfully ──
+    if (status === "done" && job.clips_count > 0) {
+      try {
+        // Get current profile
+        const profileRes = await fetch(
+          `${supabaseUrl}/rest/v1/profiles?id=eq.${job.user_id}&select=clips_used`,
+          {
+            headers: {
+              apikey: serviceKey,
+              Authorization: `Bearer ${serviceKey}`,
+            },
+          }
+        );
+        const profiles = await profileRes.json();
+        if (profiles && profiles.length > 0) {
+          const currentClipsUsed = profiles[0].clips_used || 0;
+          await fetch(
+            `${supabaseUrl}/rest/v1/profiles?id=eq.${job.user_id}`,
+            {
+              method: "PATCH",
+              headers: {
+                apikey: serviceKey,
+                Authorization: `Bearer ${serviceKey}`,
+                "Content-Type": "application/json",
+                Prefer: "return=minimal",
+              },
+              body: JSON.stringify({
+                clips_used: currentClipsUsed + job.clips_count,
+              }),
+            }
+          );
+          console.log(`Updated clips_used: ${currentClipsUsed} → ${currentClipsUsed + job.clips_count} for user ${job.user_id}`);
+        }
+      } catch (err) {
+        console.error("Failed to update clips_used:", err);
+        // Don't fail the webhook — the job is still done
+      }
+    }
+
+    // ── Clean up uploaded video file from Supabase Storage ──
+    if (job.source_type === "upload" && job.video_url) {
+      try {
+        // Extract the storage path from the public URL
+        // Format: {supabaseUrl}/storage/v1/object/public/videos/{userId}/{filename}
+        const storagePrefix = `/storage/v1/object/public/videos/`;
+        const urlObj = new URL(job.video_url);
+        const pathIndex = urlObj.pathname.indexOf(storagePrefix);
+
+        if (pathIndex >= 0) {
+          const filePath = urlObj.pathname.substring(pathIndex + storagePrefix.length);
+
+          // Delete the file from Supabase Storage
+          const deleteRes = await fetch(
+            `${supabaseUrl}/storage/v1/object/videos/${filePath}`,
+            {
+              method: "DELETE",
+              headers: {
+                apikey: serviceKey,
+                Authorization: `Bearer ${serviceKey}`,
+              },
+            }
+          );
+
+          if (deleteRes.ok) {
+            console.log(`Cleaned up uploaded file: videos/${filePath}`);
+          } else {
+            console.warn(`Failed to clean up file: videos/${filePath}, status: ${deleteRes.status}`);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to clean up uploaded file:", err);
+        // Don't fail the webhook — cleanup is best-effort
+      }
+    }
 
     // ── Get user email from Supabase auth admin API ──
     const userRes = await fetch(
@@ -112,7 +188,7 @@ export async function POST(request: NextRequest) {
         subject: "⚠️ Video processing failed",
         html: buildFailureEmail({
           jobUrl,
-          errorMessage: error_message || "Unknown error",
+          errorMessage: error_message || "An unexpected error occurred",
           videoUrl: job.video_url || "",
         }),
       });
@@ -123,7 +199,7 @@ export async function POST(request: NextRequest) {
     const errMsg = err instanceof Error ? err.message : String(err);
     console.error("Webhook handler error:", errMsg);
     return NextResponse.json(
-      { error: `Internal error: ${errMsg}` },
+      { error: "Internal error" },
       { status: 500 }
     );
   }
@@ -182,9 +258,9 @@ function buildFailureEmail(opts: { jobUrl: string; errorMessage: string; videoUr
         Source: ${opts.videoUrl.length > 80 ? opts.videoUrl.slice(0, 80) + "..." : opts.videoUrl}
       </p>
       <div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:12px 16px;margin:0 0 24px;">
-        <code style="color:#EF4444;font-size:13px;word-break:break-all;">
+        <span style="color:#EF4444;font-size:13px;">
           ${opts.errorMessage}
-        </code>
+        </span>
       </div>
       <a href="${opts.jobUrl}"
          style="display:inline-block;background:linear-gradient(135deg,#EF4444,#DC2626);color:#fff;padding:14px 32px;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;">

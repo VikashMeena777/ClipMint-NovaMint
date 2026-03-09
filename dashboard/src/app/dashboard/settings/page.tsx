@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase";
 import type { Profile } from "@/lib/types";
 import { CAPTION_STYLES, PLAN_LIMITS, type CaptionStyle } from "@/lib/types";
-import { Settings, User, Bell, Palette, Shield, Save, Loader2 } from "lucide-react";
+import { Settings, User, Bell, Palette, Shield, Save, Loader2, ExternalLink } from "lucide-react";
 
 export default function SettingsPage() {
     const supabase = createClient();
@@ -19,6 +19,7 @@ export default function SettingsPage() {
         jobFailed: true,
         weeklyReport: false,
     });
+    const [discordWebhookUrl, setDiscordWebhookUrl] = useState("");
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
@@ -41,6 +42,15 @@ export default function SettingsPage() {
                 const p = data as Profile;
                 setProfile(p);
                 setFullName(p.full_name ?? "");
+                // Load saved notification preferences
+                setNotifications({
+                    discord: p.notify_discord ?? true,
+                    email: p.notify_email ?? false,
+                    jobComplete: p.notify_job_complete ?? true,
+                    jobFailed: p.notify_job_failed ?? true,
+                    weeklyReport: p.notify_weekly_report ?? false,
+                });
+                setDiscordWebhookUrl(p.discord_webhook_url ?? "");
             }
             setLoading(false);
         }
@@ -52,9 +62,27 @@ export default function SettingsPage() {
         setSaving(true);
         setError(null);
 
+        // Validate Discord webhook URL if enabled
+        if (notifications.discord && discordWebhookUrl.trim()) {
+            if (!discordWebhookUrl.startsWith("https://discord.com/api/webhooks/") &&
+                !discordWebhookUrl.startsWith("https://discordapp.com/api/webhooks/")) {
+                setError("Invalid Discord webhook URL. It should start with https://discord.com/api/webhooks/");
+                setSaving(false);
+                return;
+            }
+        }
+
         const { error: updateError } = await supabase
             .from("profiles")
-            .update({ full_name: fullName.trim() })
+            .update({
+                full_name: fullName.trim(),
+                notify_discord: notifications.discord,
+                notify_email: notifications.email,
+                notify_job_complete: notifications.jobComplete,
+                notify_job_failed: notifications.jobFailed,
+                notify_weekly_report: notifications.weeklyReport,
+                discord_webhook_url: discordWebhookUrl.trim() || null,
+            })
             .eq("id", profile.id);
 
         if (updateError) {
@@ -142,35 +170,71 @@ export default function SettingsPage() {
                         { key: "jobFailed" as const, label: "Job Failed", desc: "Alert on processing errors" },
                         { key: "weeklyReport" as const, label: "Weekly Report", desc: "Summary of clips and performance" },
                     ].map((item) => (
-                        <div key={item.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <div>
-                                <div style={{ fontSize: 14, fontWeight: 600 }}>{item.label}</div>
-                                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{item.desc}</div>
+                        <div key={item.key}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <div>
+                                    <div style={{ fontSize: 14, fontWeight: 600 }}>{item.label}</div>
+                                    <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{item.desc}</div>
+                                </div>
+                                <button
+                                    onClick={() => setNotifications((n) => ({ ...n, [item.key]: !n[item.key] }))}
+                                    style={{
+                                        width: 44,
+                                        height: 24,
+                                        borderRadius: 12,
+                                        border: "none",
+                                        background: notifications[item.key] ? "var(--accent-primary)" : "var(--border-subtle)",
+                                        cursor: "pointer",
+                                        position: "relative",
+                                        transition: "background 0.2s",
+                                        flexShrink: 0,
+                                    }}
+                                >
+                                    <div style={{
+                                        width: 18,
+                                        height: 18,
+                                        borderRadius: "50%",
+                                        background: "white",
+                                        position: "absolute",
+                                        top: 3,
+                                        left: notifications[item.key] ? 23 : 3,
+                                        transition: "left 0.2s",
+                                    }} />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => setNotifications((n) => ({ ...n, [item.key]: !n[item.key] }))}
-                                style={{
-                                    width: 44,
-                                    height: 24,
-                                    borderRadius: 12,
-                                    border: "none",
-                                    background: notifications[item.key] ? "var(--accent-primary)" : "var(--border-subtle)",
-                                    cursor: "pointer",
-                                    position: "relative",
-                                    transition: "background 0.2s",
-                                }}
-                            >
-                                <div style={{
-                                    width: 18,
-                                    height: 18,
-                                    borderRadius: "50%",
-                                    background: "white",
-                                    position: "absolute",
-                                    top: 3,
-                                    left: notifications[item.key] ? 23 : 3,
-                                    transition: "left 0.2s",
-                                }} />
-                            </button>
+
+                            {/* Discord webhook URL input — shown when discord toggle is on */}
+                            {item.key === "discord" && notifications.discord && (
+                                <div style={{ marginTop: 12, marginLeft: 0 }}>
+                                    <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-muted)", marginBottom: 6 }}>
+                                        Discord Webhook URL
+                                    </label>
+                                    <input
+                                        type="url"
+                                        value={discordWebhookUrl}
+                                        onChange={(e) => setDiscordWebhookUrl(e.target.value)}
+                                        placeholder="https://discord.com/api/webhooks/..."
+                                        className="input-field"
+                                        style={{ fontSize: 13 }}
+                                    />
+                                    <a
+                                        href="https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            gap: 4,
+                                            marginTop: 8,
+                                            fontSize: 12,
+                                            color: "var(--accent-primary)",
+                                            textDecoration: "none",
+                                        }}
+                                    >
+                                        <ExternalLink size={12} /> How to create a Discord webhook
+                                    </a>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
