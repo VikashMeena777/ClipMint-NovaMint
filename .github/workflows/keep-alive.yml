@@ -2,8 +2,8 @@ name: Keep Supabase Alive
 
 on:
   schedule:
-    # Run every 3 days at 6 AM UTC (11:30 AM IST)
-    - cron: '0 6 */3 * *'
+    # Run every day at 6 AM UTC (11:30 AM IST)
+    - cron: '0 6 * * *'
   workflow_dispatch: # Allow manual trigger
 
 jobs:
@@ -13,29 +13,37 @@ jobs:
       - name: Ping ClipMint Supabase
         run: |
           echo "🏓 Pinging ClipMint Supabase..."
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
-            "https://zwgooqazqxqnfdgmhsev.supabase.co/rest/v1/" \
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            "https://zwgooqazqxqnfdgmhsev.supabase.co/rest/v1/profiles?select=count&limit=1" \
             -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3Z29vcWF6cXhxbmZkZ21oc2V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3NDcxOTYsImV4cCI6MjA4ODMyMzE5Nn0.7KnhAaVTHXQGgHDjFaZUlnGvkCvFMCVpzQo-KNfptKk" \
             -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3Z29vcWF6cXhxbmZkZ21oc2V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3NDcxOTYsImV4cCI6MjA4ODMyMzE5Nn0.7KnhAaVTHXQGgHDjFaZUlnGvkCvFMCVpzQo-KNfptKk")
-          echo "ClipMint Response: $RESPONSE"
-          if [ "$RESPONSE" -ne 200 ]; then
-            echo "⚠️ ClipMint ping returned non-200 status: $RESPONSE"
-          else
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          echo "Status: $HTTP_CODE"
+          echo "Body: $BODY"
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
             echo "✅ ClipMint Supabase is alive!"
+          else
+            echo "❌ ClipMint ping failed with status $HTTP_CODE"
+            exit 1
           fi
 
       - name: Ping FrameMint Supabase
         run: |
           echo "🏓 Pinging FrameMint Supabase..."
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
-            "https://ndxhddaovzichvutqmjt.supabase.co/rest/v1/" \
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            "https://ndxhddaovzichvutqmjt.supabase.co/rest/v1/profiles?select=count&limit=1" \
             -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5keGhkZGFvdnppY2h2dXRxbWp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMjQ4MzIsImV4cCI6MjA4ODkwMDgzMn0.EoDxXmcvugy6iK8AuZcFrHXbne16fI2f25AWQbBu4HM" \
             -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5keGhkZGFvdnppY2h2dXRxbWp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzMjQ4MzIsImV4cCI6MjA4ODkwMDgzMn0.EoDxXmcvugy6iK8AuZcFrHXbne16fI2f25AWQbBu4HM")
-          echo "FrameMint Response: $RESPONSE"
-          if [ "$RESPONSE" -ne 200 ]; then
-            echo "⚠️ FrameMint ping returned non-200 status: $RESPONSE"
-          else
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          echo "Status: $HTTP_CODE"
+          echo "Body: $BODY"
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
             echo "✅ FrameMint Supabase is alive!"
+          else
+            echo "❌ FrameMint ping failed with status $HTTP_CODE"
+            exit 1
           fi
 
       - name: Summary
