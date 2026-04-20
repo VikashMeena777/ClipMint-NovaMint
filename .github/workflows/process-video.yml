@@ -184,7 +184,7 @@ jobs:
 
           # Run full transcription pipeline in Python (handles Groq → NIM fallback per chunk)
           python3 << 'PYTRANSCRIBE'
-          import json, os, time, glob, requests
+          import json, os, time, glob, requests, re
 
           groq_key = os.environ.get("GROQ_API_KEY", "")
           nim_key = os.environ.get("NVIDIA_NIM_API_KEY", "")
@@ -201,7 +201,7 @@ jobs:
                   "max_retries": 3,
               })
           else:
-              print("⚠️ GROQ_API_KEY not set — skipping Groq provider")
+              print("GROQ_API_KEY not set -- skipping Groq provider")
 
           if nim_key:
               PROVIDERS.append({
@@ -212,81 +212,92 @@ jobs:
                   "max_retries": 2,
               })
           else:
-              print("⚠️ NVIDIA_NIM_API_KEY not set — NIM fallback disabled")
+              print("NVIDIA_NIM_API_KEY not set -- NIM fallback disabled")
 
           if not PROVIDERS:
-              print("❌ No transcription providers configured — aborting")
+              print("No transcription providers configured -- aborting")
               exit(1)
 
-          print(f"🔧 Providers configured: {' → '.join(p['name'] for p in PROVIDERS)}")
+          print(f"Providers configured: {' -> '.join(p['name'] for p in PROVIDERS)}")
 
-          def transcribe_chunk(chunk_path):
-              """Transcribe a single audio chunk. Tries providers in order with retries."""
+          # ── Language state: auto-detect on first chunk, lock for rest ──
+          detected_language = None  # Will be set after first chunk
+
+          def transcribe_chunk(chunk_path, force_language=None):
+              """Transcribe a single audio chunk. Tries providers in order with retries.
+              If force_language is set, hints Whisper to use that language for consistency."""
               for provider in PROVIDERS:
-                  succeeded = False
                   for attempt in range(provider["max_retries"]):
                       try:
                           with open(chunk_path, "rb") as audio_file:
+                              form_data = {
+                                  "model": provider["model"],
+                                  "response_format": "verbose_json",
+                                  "timestamp_granularities[]": "word",
+                              }
+                              # Force language hint for consistency across chunks
+                              if force_language:
+                                  form_data["language"] = force_language
+
                               response = requests.post(
                                   provider["url"],
                                   headers={"Authorization": f"Bearer {provider['key']}"},
                                   files={"file": (os.path.basename(chunk_path), audio_file, "audio/wav")},
-                                  data={
-                                      "model": provider["model"],
-                                      "response_format": "verbose_json",
-                                      "timestamp_granularities[]": "word",
-                                  },
+                                  data=form_data,
                                   timeout=180,
                               )
 
                           if response.status_code == 200:
                               data = response.json()
                               if "words" in data or "segments" in data:
-                                  print(f"  ✅ Transcribed via {provider['name']} (attempt {attempt + 1})")
+                                  lang = data.get("language", "unknown")
+                                  print(f"  Transcribed via {provider['name']} (attempt {attempt + 1}, lang={lang})")
                                   return data
                               else:
-                                  print(f"  ⚠️ {provider['name']} returned 200 but response missing words/segments")
+                                  print(f"  {provider['name']} returned 200 but response missing words/segments")
                                   print(f"      Response keys: {list(data.keys())}")
-                                  break  # Structural issue — try next provider
+                                  break
 
                           elif response.status_code in [429, 500, 502, 503]:
                               wait = 2 ** attempt * 5
-                              print(f"  ⚠️ {provider['name']} HTTP {response.status_code}, retrying in {wait}s (attempt {attempt + 1}/{provider['max_retries']})...")
+                              print(f"  {provider['name']} HTTP {response.status_code}, retrying in {wait}s (attempt {attempt + 1}/{provider['max_retries']})...")
                               time.sleep(wait)
 
                           else:
-                              print(f"  ❌ {provider['name']} HTTP {response.status_code}: {response.text[:300]}")
-                              break  # Non-retryable error — try next provider
+                              print(f"  {provider['name']} HTTP {response.status_code}: {response.text[:300]}")
+                              break
 
                       except requests.exceptions.Timeout:
                           wait = 2 ** attempt * 5
-                          print(f"  ⚠️ {provider['name']} timeout, retrying in {wait}s (attempt {attempt + 1}/{provider['max_retries']})...")
+                          print(f"  {provider['name']} timeout, retrying in {wait}s (attempt {attempt + 1}/{provider['max_retries']})...")
                           time.sleep(wait)
 
                       except Exception as e:
                           wait = 2 ** attempt * 5
-                          print(f"  ⚠️ {provider['name']} error: {e}, retrying in {wait}s (attempt {attempt + 1}/{provider['max_retries']})...")
+                          print(f"  {provider['name']} error: {e}, retrying in {wait}s (attempt {attempt + 1}/{provider['max_retries']})...")
                           time.sleep(wait)
 
-                  if not succeeded:
-                      print(f"  ⛔ {provider['name']} exhausted all retries — trying next provider...")
+                  print(f"  {provider['name']} exhausted all retries -- trying next provider...")
 
               return None  # All providers failed
 
           def parse_captions(data, offset):
-              """Convert verbose_json response → Caption[] format."""
+              """Convert verbose_json response -> Caption[] format."""
               captions = []
 
               if "words" in data and data["words"]:
                   for w in data["words"]:
+                      text = w.get("word", w.get("text", "")).strip()
+                      if not text:
+                          continue
                       captions.append({
-                          "text": w.get("word", w.get("text", "")).strip(),
+                          "text": text,
                           "startMs": int((w["start"] + offset) * 1000),
                           "endMs": int((w["end"] + offset) * 1000),
                           "timestampMs": None,
                           "confidence": None,
                       })
-                  print(f"  📝 Word-level captions: {len(captions)} words")
+                  print(f"  Word-level captions: {len(captions)} words")
 
               elif "segments" in data and data["segments"]:
                   for seg in data["segments"]:
@@ -296,6 +307,8 @@ jobs:
                       seg_end = seg["end"] + offset
                       dur = (seg_end - seg_start) / n
                       for i, w in enumerate(words):
+                          if not w.strip():
+                              continue
                           captions.append({
                               "text": w,
                               "startMs": int((seg_start + i * dur) * 1000),
@@ -303,16 +316,121 @@ jobs:
                               "timestampMs": None,
                               "confidence": None,
                           })
-                  print(f"  ⚠️ Fallback segment distribution: {len(captions)} words")
+                  print(f"  Fallback segment distribution: {len(captions)} words")
 
               else:
-                  print("  ❌ No words or segments found in response")
+                  print("  No words or segments found in response")
                   return None
 
               if captions:
                   print(f"  First 3 words: {[c['text'] for c in captions[:3]]}")
 
               return captions
+
+          # ────────────────────────────────────────────────────────
+          # Hallucination filter — removes Whisper artifacts
+          # ────────────────────────────────────────────────────────
+          HALLUCINATION_PHRASES = [
+              "thank you for watching",
+              "thanks for watching",
+              "subscribe to my channel",
+              "please like and share",
+              "please subscribe",
+              "like share and subscribe",
+              "don't forget to subscribe",
+              "hit the bell icon",
+              "see you in the next video",
+              "bye bye",
+              "thank you so much",
+              "thanks for listening",
+              "subtitles by",
+              "captions by",
+              "translated by",
+              "copyright",
+              "music playing",
+              "applause",
+              "laughter",
+          ]
+
+          def filter_hallucinations(captions):
+              """Remove Whisper hallucinations: repetitions, artifacts, garbage text."""
+              if not captions:
+                  return captions
+
+              original_count = len(captions)
+              filtered = []
+
+              # ── Pass 1: Remove individual garbage words ──
+              for c in captions:
+                  text = c["text"].strip()
+
+                  # Skip empty text
+                  if not text:
+                      continue
+
+                  # Skip pure punctuation (Whisper sometimes outputs "...", ",,,", etc.)
+                  if re.match(r'^[^\w\s]+$', text):
+                      continue
+
+                  # Skip single characters that aren't real words
+                  # Allow: I, a, O (English), common Hindi particles
+                  if len(text) == 1 and text.lower() not in ('i', 'a', 'o'):
+                      continue
+
+                  # Skip words with impossibly long duration (>8 seconds for a single word)
+                  dur_ms = c["endMs"] - c["startMs"]
+                  if dur_ms > 8000:
+                      print(f"    Filtered long-duration word: '{text}' ({dur_ms}ms)")
+                      continue
+
+                  # Skip words with zero/negative duration
+                  if dur_ms <= 0:
+                      continue
+
+                  filtered.append(c)
+
+              # ── Pass 2: Remove consecutive repetitions (>3 repeats) ──
+              deduped = []
+              repeat_count = 1
+              for i, c in enumerate(filtered):
+                  if i > 0 and c["text"].lower() == filtered[i - 1]["text"].lower():
+                      repeat_count += 1
+                      if repeat_count <= 3:
+                          deduped.append(c)
+                      # else: skip — it's a hallucinated repetition
+                  else:
+                      repeat_count = 1
+                      deduped.append(c)
+
+              # ── Pass 3: Remove known hallucination phrases ──
+              # Build a sliding window of text to check for hallucination phrases
+              final = []
+              skip_until = -1
+              for i, c in enumerate(deduped):
+                  if i < skip_until:
+                      continue
+
+                  # Check if current position starts a hallucination phrase
+                  is_hallucination = False
+                  for phrase in HALLUCINATION_PHRASES:
+                      phrase_words = phrase.split()
+                      window = [d["text"].lower() for d in deduped[i:i + len(phrase_words)]]
+                      if " ".join(window) == phrase:
+                          print(f"    Filtered hallucination phrase: '{phrase}' at word {i}")
+                          skip_until = i + len(phrase_words)
+                          is_hallucination = True
+                          break
+
+                  if not is_hallucination:
+                      final.append(c)
+
+              removed = original_count - len(final)
+              if removed > 0:
+                  print(f"  Hallucination filter: removed {removed}/{original_count} words ({removed/original_count*100:.1f}%)")
+              else:
+                  print(f"  Hallucination filter: all {original_count} words passed (clean)")
+
+              return final
 
           # ── Main: process all chunks ──
           chunks = sorted(glob.glob("workspace/audio/chunk_*.wav"))
@@ -322,50 +440,88 @@ jobs:
           for chunk_idx, chunk_path in enumerate(chunks):
               chunk_size = os.path.getsize(chunk_path)
               offset = chunk_idx * segment_duration
-              print(f"\n📎 Chunk {chunk_idx + 1}/{len(chunks)}: {chunk_path} ({chunk_size} bytes, offset: {offset}s)")
+              print(f"\nChunk {chunk_idx + 1}/{len(chunks)}: {chunk_path} ({chunk_size} bytes, offset: {offset}s)")
 
-              data = transcribe_chunk(chunk_path)
+              # First chunk: auto-detect language. Subsequent chunks: force detected language.
+              data = transcribe_chunk(chunk_path, force_language=detected_language)
 
               if data is None:
-                  print(f"  ❌ ALL providers failed for chunk {chunk_idx} — aborting pipeline")
+                  print(f"  ALL providers failed for chunk {chunk_idx} -- aborting pipeline")
                   failed = True
                   break
+
+              # Capture detected language from first successful chunk
+              if detected_language is None:
+                  detected_language = data.get("language", "en")
+                  # Normalize: Whisper returns "hindi" or "hi", standardize to ISO code
+                  lang_map = {"hindi": "hi", "english": "en", "hinglish": "hi",
+                              "urdu": "ur", "punjabi": "pa", "tamil": "ta",
+                              "telugu": "te", "bengali": "bn", "marathi": "mr",
+                              "gujarati": "gu", "kannada": "kn", "malayalam": "ml"}
+                  detected_language = lang_map.get(detected_language.lower(), detected_language.lower())
+                  print(f"  Language auto-detected: '{detected_language}' -- locking for remaining chunks")
 
               captions = parse_captions(data, offset)
 
               if captions is None:
-                  print(f"  ❌ Failed to parse captions for chunk {chunk_idx} — aborting pipeline")
+                  print(f"  Failed to parse captions for chunk {chunk_idx} -- aborting pipeline")
                   failed = True
                   break
 
               all_captions.extend(captions)
 
           if failed:
-              print("\n❌ Transcription failed — aborting pipeline")
+              print("\nTranscription failed -- aborting pipeline")
               exit(1)
+
+          # ── Apply hallucination filter ──
+          print(f"\nApplying hallucination filter to {len(all_captions)} words...")
+          all_captions = filter_hallucinations(all_captions)
 
           # Write final captions
           with open("workspace/audio/full_captions.json", "w") as f:
               json.dump(all_captions, f)
 
-          print(f"\n✅ Transcription complete: {len(all_captions)} words across {len(chunks)} chunk(s)")
+          # Write detected language for downstream steps
+          with open("workspace/audio/detected_language.txt", "w") as f:
+              f.write(detected_language)
+
+          print(f"\nTranscription complete: {len(all_captions)} words across {len(chunks)} chunk(s)")
+          print(f"Detected language: {detected_language}")
           PYTRANSCRIBE
 
+          # Read detected language for downstream steps
+          DETECTED_LANG=$(cat workspace/audio/detected_language.txt 2>/dev/null || echo "en")
           echo "captions_path=workspace/audio/full_captions.json" >> $GITHUB_OUTPUT
+          echo "detected_language=$DETECTED_LANG" >> $GITHUB_OUTPUT
+          echo "Detected language: $DETECTED_LANG"
 
       # ─────────────────────────────────────────────────────────────
       # 4b. Transliterate Devanagari → Hinglish via Groq LLM
+      #     Only runs if detected language is Hindi (hi)
       # ─────────────────────────────────────────────────────────────
       - name: Transliterate to Hinglish (LLM)
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: |
-          echo "🔤 Transliterating Devanagari text to Hinglish via Groq LLM..."
+          echo "Transliterating captions to Hinglish if needed..."
+
+          # Check detected language — only transliterate for Hindi
+          DETECTED_LANG=$(cat workspace/audio/detected_language.txt 2>/dev/null || echo "en")
+          echo "Detected language: $DETECTED_LANG"
 
           python3 << 'TRANSLITERATE'
           import json, re, os, requests, time
 
           groq_key = os.environ["GROQ_API_KEY"]
+
+          # Read detected language
+          detected_lang = "en"
+          try:
+              with open('workspace/audio/detected_language.txt') as f:
+                  detected_lang = f.read().strip()
+          except FileNotFoundError:
+              pass
 
           with open('workspace/audio/full_captions.json') as f:
               captions = json.load(f)
@@ -374,83 +530,139 @@ jobs:
           devanagari_re = re.compile(r'[\u0900-\u097F]')
           hindi_words = [c for c in captions if devanagari_re.search(c.get('text', ''))]
 
-          if not hindi_words:
-              print("✅ No Devanagari text found — skipping transliteration")
+          if not hindi_words and detected_lang != "hi":
+              print("No Devanagari text and language is not Hindi -- skipping transliteration")
               exit(0)
 
-          print(f"  Found {len(hindi_words)}/{len(captions)} words in Devanagari — transliterating...")
+          if not hindi_words:
+              print("Language is Hindi but no Devanagari text found -- skipping transliteration")
+              exit(0)
 
-          # Batch transliterate in chunks of 200 words for efficiency
-          BATCH_SIZE = 200
+          print(f"Found {len(hindi_words)}/{len(captions)} words in Devanagari -- transliterating with context...")
+
+          # ── Context-aware transliteration ──
+          # Instead of sending individual words, we group consecutive words into
+          # sentence-like chunks so the LLM can understand context and produce
+          # better romanization (e.g., "main" vs "mein" based on context).
+          CONTEXT_SIZE = 15  # words per group for LLM context
+
+          # Build groups of consecutive Devanagari words with their neighbors for context
           hindi_indices = [i for i, c in enumerate(captions) if devanagari_re.search(c.get('text', ''))]
 
+          # Process in batches of CONTEXT_SIZE indices
+          BATCH_SIZE = 150  # max indices per LLM call
           for batch_start in range(0, len(hindi_indices), BATCH_SIZE):
               batch_idx = hindi_indices[batch_start:batch_start + BATCH_SIZE]
-              batch_words = [captions[i]['text'] for i in batch_idx]
-              words_str = '\n'.join(f"{j+1}. {w}" for j, w in enumerate(batch_words))
 
-              prompt = f"""Convert these Hindi (Devanagari) words to natural Hinglish (romanized Hindi as Indians actually type/text it).
+              # Build context sentences: for each Devanagari word, include surrounding words
+              # This gives the LLM context to produce better transliteration
+              context_groups = []
+              current_group = []
+              current_group_idx = []
 
-          Rules:
-          - Write how Indians naturally type Hindi in Latin script (WhatsApp/Instagram style)
-          - Do NOT translate to English. Keep the Hindi word, just romanize it.
-          - Example: कैसे → kaise, बहुत → bohot, क्या → kya, लेकिन → lekin
-          - Return ONLY a JSON array of strings in the same order, nothing else.
+              for idx in batch_idx:
+                  # Get a window of words around this Devanagari word for context
+                  start = max(0, idx - 2)
+                  end = min(len(captions), idx + 3)
+                  context = " ".join(c['text'] for c in captions[start:end])
 
-          Words:
+                  current_group.append({
+                      "index": idx,
+                      "original": captions[idx]['text'],
+                      "context": context
+                  })
+
+                  if len(current_group) >= CONTEXT_SIZE:
+                      context_groups.append(current_group)
+                      current_group = []
+
+              if current_group:
+                  context_groups.append(current_group)
+
+              for group_idx, group in enumerate(context_groups):
+                  # Build the prompt with context
+                  words_with_context = []
+                  for j, item in enumerate(group):
+                      words_with_context.append(
+                          f'{j+1}. "{item["original"]}" (context: ...{item["context"]}...)'
+                      )
+                  words_str = "\n".join(words_with_context)
+
+                  prompt = f"""Convert these Hindi (Devanagari) words to natural Hinglish (romanized Hindi).
+
+          CRITICAL RULES:
+          1. Romanize how Indians ACTUALLY type on WhatsApp/Instagram — NOT formal transliteration
+          2. Do NOT translate to English. Just romanize the Hindi word.
+          3. If a word is ALREADY in English/Latin script, keep it exactly as-is
+          4. Use the context to pick the right romanization (e.g., "मैं" = "main" not "mein" when meaning "I")
+          5. Common patterns:
+             - क्या → kya, कैसे → kaise, बहुत → bohot, लेकिन → lekin
+             - है → hai, हैं → hain, था → tha, हो → ho
+             - आप → aap, तुम → tum, मैं → main, हम → hum
+             - नहीं → nahi, अच्छा → accha, ठीक → theek
+          6. Return ONLY a JSON object with key "words" containing an array of romanized strings, same order
+
+          Words to romanize:
           {words_str}"""
 
-              for attempt in range(3):
-                  try:
-                      resp = requests.post(
-                          "https://api.groq.com/openai/v1/chat/completions",
-                          headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
-                          json={
-                              "model": "llama-3.3-70b-versatile",
-                              "messages": [
-                                  {"role": "system", "content": "You convert Devanagari text to natural Hinglish romanization. Return ONLY a JSON array."},
-                                  {"role": "user", "content": prompt}
-                              ],
-                              "temperature": 0.2,
-                              "max_tokens": 2048,
-                              "response_format": {"type": "json_object"}
-                          },
-                          timeout=60
-                      )
-                      if resp.status_code == 200:
-                          content = resp.json()["choices"][0]["message"]["content"]
-                          parsed = json.loads(content)
-                          # Handle both {"words": [...]} and [...] formats
-                          if isinstance(parsed, dict):
-                              romanized = list(parsed.values())[0] if parsed else []
-                          else:
-                              romanized = parsed
+                  for attempt in range(3):
+                      try:
+                          resp = requests.post(
+                              "https://api.groq.com/openai/v1/chat/completions",
+                              headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
+                              json={
+                                  "model": "llama-3.3-70b-versatile",
+                                  "messages": [
+                                      {"role": "system", "content": "You are a Hindi-to-Hinglish romanization expert. You convert Devanagari script to natural romanized Hindi (Hinglish) as Indians type it on social media. Return ONLY valid JSON."},
+                                      {"role": "user", "content": prompt}
+                                  ],
+                                  "temperature": 0.1,
+                                  "max_tokens": 2048,
+                                  "response_format": {"type": "json_object"}
+                              },
+                              timeout=60
+                          )
+                          if resp.status_code == 200:
+                              content = resp.json()["choices"][0]["message"]["content"]
+                              parsed = json.loads(content)
+                              # Handle both {"words": [...]} and [...] and {"result": [...]} formats
+                              if isinstance(parsed, dict):
+                                  romanized = parsed.get("words", list(parsed.values())[0] if parsed else [])
+                              else:
+                                  romanized = parsed
 
-                          if len(romanized) == len(batch_idx):
-                              for idx, roman_word in zip(batch_idx, romanized):
-                                  captions[idx]['text'] = str(roman_word).strip()
-                              print(f"  ✅ Batch {batch_start//BATCH_SIZE + 1}: transliterated {len(batch_idx)} words")
-                              break
+                              if isinstance(romanized, list) and len(romanized) == len(group):
+                                  for item, roman_word in zip(group, romanized):
+                                      new_text = str(roman_word).strip()
+                                      if new_text:  # Don't replace with empty string
+                                          captions[item["index"]]['text'] = new_text
+                                  print(f"  Batch {batch_start//BATCH_SIZE + 1}, Group {group_idx + 1}: transliterated {len(group)} words")
+                                  break
+                              else:
+                                  print(f"  Length mismatch: expected {len(group)}, got {len(romanized) if isinstance(romanized, list) else 'non-list'}. Retrying...")
+                          elif resp.status_code in [429, 500, 502, 503]:
+                              wait = 2 ** attempt * 3
+                              print(f"  Groq {resp.status_code}, retrying in {wait}s...")
+                              time.sleep(wait)
                           else:
-                              print(f"  ⚠️ Length mismatch: expected {len(batch_idx)}, got {len(romanized)}. Retrying...")
-                      elif resp.status_code in [429, 500, 502, 503]:
-                          time.sleep(2 ** attempt * 3)
-                      else:
-                          print(f"  ❌ Groq error {resp.status_code}: {resp.text[:200]}")
-                          break
-                  except Exception as e:
-                      print(f"  ⚠️ Error: {e}")
-                      if attempt < 2:
-                          time.sleep(2 ** attempt * 3)
+                              print(f"  Groq error {resp.status_code}: {resp.text[:200]}")
+                              break
+                      except Exception as e:
+                          print(f"  Error: {e}")
+                          if attempt < 2:
+                              time.sleep(2 ** attempt * 3)
 
           with open('workspace/audio/full_captions.json', 'w') as f:
               json.dump(captions, f)
 
           # Verify no Devanagari remains
           remaining = sum(1 for c in captions if devanagari_re.search(c.get('text', '')))
-          print(f"✅ Transliteration complete. Remaining Devanagari words: {remaining}")
+          print(f"Transliteration complete. Remaining Devanagari words: {remaining}/{len(captions)}")
+          if remaining > 0:
+              # Show first few remaining for debugging
+              samples = [c['text'] for c in captions if devanagari_re.search(c.get('text', ''))][:5]
+              print(f"  Remaining samples: {samples}")
           TRANSLITERATE
-
 
       # ─────────────────────────────────────────────────────────────
       # 4c. Audio Energy Analysis (Tier 1.3)
