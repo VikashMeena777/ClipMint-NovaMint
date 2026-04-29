@@ -219,9 +219,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ status: "ok" });
     } catch (err) {
         console.error("Webhook processing error:", err);
+        // Always return 200 to prevent Cashfree retry storms
         return NextResponse.json(
-            { error: "Webhook processing failed" },
-            { status: 500 }
+            { message: "Error processed" },
+            { status: 200 }
         );
     }
 }
