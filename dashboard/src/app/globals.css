@@ -563,14 +563,20 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 .dash-sidebar.collapsed {
     width: 80px;
+    padding: 24px 8px;
 }
 
 .dash-sidebar.collapsed .sidebar-label {
     display: none !important;
 }
 
+.dash-sidebar.collapsed .sidebar-nav-item {
+    justify-content: center;
+    padding: 10px 0;
+}
+
 .dash-sidebar.collapsed .sidebar-usage-card {
-    padding: 10px 8px;
+    padding: 8px 6px;
 }
 
 .sidebar-nav-item {
