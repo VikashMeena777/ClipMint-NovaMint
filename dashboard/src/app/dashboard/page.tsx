@@ -133,35 +133,35 @@ export default function JobsPage() {
     return (
         <div>
             {/* ─── Welcome Header ─── */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 }}>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                 <div>
-                    <h1 style={{ fontSize: "clamp(22px, 3vw, 28px)", fontWeight: 800, marginBottom: 4 }}>
+                    <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-1 text-slate-100">
                         {getGreeting()}{userName ? `, ${userName}` : ""} 👋
                     </h1>
-                    <p style={{ color: "var(--text-muted)", fontSize: 14 }}>
+                    <p className="text-sm text-[#64748b]">
                         Here&apos;s what&apos;s happening with your content today
                     </p>
                 </div>
-                <Link href="/dashboard/new" className="btn-primary" style={{ textDecoration: "none", padding: "10px 20px", fontSize: 14, gap: 8 }}>
+                <Link href="/dashboard/new" className="btn-primary py-2.5 px-5 text-sm font-semibold flex items-center gap-2 shadow-lg">
                     <Plus size={16} /> New Video
                 </Link>
             </div>
 
             {/* ─── Stat Cards ─── */}
-            <div className="dash-grid-4" style={{ marginBottom: 28 }}>
+            <div className="dash-grid-4 mb-8">
                 {statCards.map((stat) => (
                     <div key={stat.label} className="stat-card">
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                            <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 500 }}>{stat.label}</span>
-                            <div className="stat-icon-bg" style={{ background: stat.bg }}>
+                        <div className="flex justify-between items-center mb-3">
+                            <span className="text-xs text-[#64748b] font-semibold uppercase tracking-wider">{stat.label}</span>
+                            <div className="stat-icon-bg border border-white/5" style={{ backgroundColor: stat.bg }}>
                                 <stat.icon size={18} style={{ color: stat.color }} />
                             </div>
                         </div>
-                        <div style={{ fontSize: 28, fontWeight: 800, marginBottom: 4 }}>
-                            {loading ? <div className="skeleton" style={{ height: 28, width: 60 }} /> : stat.value}
+                        <div className="text-3xl font-bold tracking-tight text-slate-100 mb-1">
+                            {loading ? <div className="skeleton h-8 w-16" /> : stat.value}
                         </div>
                         {!loading && stat.label === "Completed" && totalJobs > 0 && (
-                            <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "var(--accent-green)" }}>
+                            <div className="flex items-center gap-1.5 text-xs text-[#10b981] font-semibold">
                                 <TrendingUp size={12} /> {Math.round((completed / totalJobs) * 100)}% success rate
                             </div>
                         )}
@@ -170,47 +170,36 @@ export default function JobsPage() {
             </div>
 
             {/* ─── Search + Filter ─── */}
-            <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-                <div style={{ flex: 1, position: "relative" }}>
-                    <Search size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
-                    <input className="input-field" placeholder="Search jobs..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ paddingLeft: 40, padding: "12px 16px 12px 40px" }} />
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                <div className="flex-1 relative">
+                    <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#64748b]" />
+                    <input 
+                        className="input-field pl-11 py-3" 
+                        placeholder="Search jobs..." 
+                        value={search} 
+                        onChange={(e) => setSearch(e.target.value)} 
+                    />
                 </div>
-                <div ref={filterRef} style={{ position: "relative" }}>
+                <div ref={filterRef} className="relative">
                     <button
-                        className="btn-secondary"
+                        className={`btn-secondary w-full sm:w-auto px-4 py-3 text-xs font-semibold justify-center gap-2 h-full ${statusFilter !== "all" ? "border-[#8b5cf6] bg-[#8b5cf6]/10 text-white" : ""}`}
                         onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-                        style={{
-                            gap: 8, minWidth: 120, justifyContent: "center", height: "100%", padding: "10px 16px", fontSize: 13,
-                            border: statusFilter !== "all" ? "1px solid var(--accent-primary)" : undefined,
-                            background: statusFilter !== "all" ? "rgba(108,92,231,0.1)" : undefined,
-                        }}
                     >
                         <Filter size={14} />
                         {statusFilter === "all" ? "Filter" : activeFilterLabel?.label}
                         {statusFilter !== "all" ? (
-                            <X size={12} style={{ cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); setStatusFilter("all"); setShowFilterDropdown(false); }} />
+                            <X size={12} className="cursor-pointer ml-1 text-[#64748b] hover:text-[#f8fafc] transition-colors" onClick={(e) => { e.stopPropagation(); setStatusFilter("all"); setShowFilterDropdown(false); }} />
                         ) : <ChevronDown size={12} />}
                     </button>
                     {showFilterDropdown && (
-                        <div style={{
-                            position: "absolute", top: "calc(100% + 6px)", right: 0, minWidth: 170,
-                            background: "var(--bg-card)", border: "1px solid var(--border-subtle)",
-                            borderRadius: 12, padding: 5, zIndex: 50, boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
-                        }}>
+                        <div className="absolute top-[calc(100%+6px)] right-0 min-w-[180px] bg-[#0d0c12] border border-white/5 rounded-xl p-1.5 z-50 shadow-2xl animate-scale-in">
                             {FILTER_OPTIONS.map((opt) => (
                                 <button
                                     key={opt.value}
                                     onClick={() => { setStatusFilter(opt.value); setShowFilterDropdown(false); }}
-                                    style={{
-                                        display: "flex", alignItems: "center", gap: 10, width: "100%",
-                                        padding: "9px 12px", borderRadius: 8, border: "none",
-                                        background: statusFilter === opt.value ? "rgba(108,92,231,0.15)" : "transparent",
-                                        color: statusFilter === opt.value ? "var(--text-primary)" : "var(--text-secondary)",
-                                        cursor: "pointer", fontSize: 13, fontWeight: statusFilter === opt.value ? 600 : 400,
-                                        transition: "all 0.15s ease", textAlign: "left", fontFamily: "inherit",
-                                    }}
+                                    className={`flex items-center gap-2.5 w-full px-3 py-2 rounded-lg border-none text-left cursor-pointer text-xs transition-all font-medium ${statusFilter === opt.value ? "bg-[#8b5cf6]/15 text-[#f8fafc]" : "bg-transparent text-slate-400 hover:bg-white/5 hover:text-slate-200"}`}
                                 >
-                                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: opt.color, flexShrink: 0 }} />
+                                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: opt.color }} />
                                     {opt.label}
                                 </button>
                             ))}
@@ -221,35 +210,30 @@ export default function JobsPage() {
 
             {/* ─── Jobs List ─── */}
             {loading ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div className="flex flex-col gap-3">
                     {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="skeleton" style={{ height: 80, borderRadius: 14 }} />
+                        <div key={i} className="skeleton h-20 rounded-2xl" />
                     ))}
                 </div>
             ) : filteredJobs.length === 0 ? (
-                <div className="glass-card" style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", padding: "80px 20px" }}>
-                    <div style={{
-                        width: 80, height: 80, borderRadius: 24,
-                        background: "rgba(108,92,231,0.1)",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        marginBottom: 24
-                    }}>
-                        <Film size={40} style={{ color: "var(--accent-primary)" }} />
+                <div className="glass-card flex flex-col items-center justify-center text-center py-20 px-6 max-w-lg mx-auto">
+                    <div className="w-20 h-20 rounded-2xl bg-[#8b5cf6]/10 border border-[#8b5cf6]/15 flex items-center justify-center mb-6 shadow-inner mx-auto">
+                        <Film size={44} className="text-[#8b5cf6] animate-pulse-glow" />
                     </div>
-                    <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>
+                    <h3 className="text-lg font-bold text-slate-200 mb-2">
                         {statusFilter !== "all" ? "No matching jobs" : "No jobs yet"}
                     </h3>
-                    <p style={{ color: "var(--text-muted)", fontSize: 15, marginBottom: 32, maxWidth: 300 }}>
+                    <p className="text-sm text-slate-400 max-w-xs mb-6 leading-relaxed">
                         {statusFilter !== "all" ? "Try a different filter or clear your search" : "Upload your first video to get started"}
                     </p>
                     {statusFilter === "all" && (
-                        <Link href="/dashboard/new" className="btn-primary" style={{ textDecoration: "none", gap: 8 }}>
+                        <Link href="/dashboard/new" className="btn-primary flex items-center gap-2 shadow-lg text-sm font-semibold">
                             <Plus size={16} /> Upload Video
                         </Link>
                     )}
                 </div>
             ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div className="flex flex-col gap-3">
                     {filteredJobs.map((job, i) => {
                         const statusInfo = JOB_STATUS_LABELS[job.status];
                         const isProcessing = !["done", "failed", "queued", "cancelled"].includes(job.status);
@@ -257,46 +241,39 @@ export default function JobsPage() {
                             <Link
                                 key={job.id}
                                 href={`/dashboard/${job.id}`}
-                                className="glass-card animate-fade-in-up"
+                                className="glass-card p-4 flex items-center gap-4 no-underline text-inherit animate-fade-in-up hover:border-[#8b5cf6]/35"
                                 style={{
-                                    padding: "16px 20px", textDecoration: "none", color: "inherit",
-                                    display: "flex", alignItems: "center", gap: 16,
                                     animationDelay: `${i * 0.04}s`,
                                 }}
                             >
                                 {/* Thumbnail placeholder */}
-                                <div style={{
-                                    width: 48, height: 48, borderRadius: 10, flexShrink: 0,
-                                    background: "var(--gradient-card)",
-                                    display: "flex", alignItems: "center", justifyContent: "center",
-                                    border: "1px solid var(--border-subtle)",
-                                }}>
-                                    <Film size={20} style={{ color: "var(--text-muted)", opacity: 0.5 }} />
+                                <div className="w-12 h-12 rounded-xl flex-shrink-0 bg-gradient-to-br from-[#8b5cf6]/5 to-[#06b6d4]/5 flex items-center justify-center border border-white/5">
+                                    <Film size={20} className="text-[#64748b]/60" />
                                 </div>
 
                                 {/* Info */}
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-sm font-semibold text-slate-200 mb-1 whitespace-nowrap overflow-hidden text-ellipsis">
                                         {job.video_url || job.video_filename || "Untitled"}
                                     </div>
-                                    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--text-muted)" }}>
+                                    <div className="flex items-center gap-2 text-xs text-[#64748b]">
                                         <span>{job.caption_style}</span>
-                                        <span style={{ opacity: 0.3 }}>•</span>
+                                        <span className="opacity-30">•</span>
                                         <span>{timeAgo(job.created_at)}</span>
                                         {job.clips_count > 0 && (
                                             <>
-                                                <span style={{ opacity: 0.3 }}>•</span>
-                                                <span style={{ color: "var(--accent-green)", fontWeight: 600 }}>{job.clips_count} clips</span>
+                                                <span className="opacity-30">•</span>
+                                                <span className="text-[#10b981] font-semibold">{job.clips_count} clips</span>
                                             </>
                                         )}
                                     </div>
                                 </div>
 
                                 {/* Progress ring or status */}
-                                <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+                                <div className="flex items-center gap-3.5 flex-shrink-0">
                                     {isProcessing && (
-                                        <div style={{ position: "relative", width: 36, height: 36 }}>
-                                            <svg width="36" height="36" style={{ transform: "rotate(-90deg)" }}>
+                                        <div className="relative w-9 h-9">
+                                            <svg width="36" height="36" className="-rotate-90">
                                                 <circle cx="18" cy="18" r="14" fill="none" stroke="var(--bg-secondary)" strokeWidth="3" />
                                                 <circle
                                                     cx="18" cy="18" r="14" fill="none" stroke="var(--accent-primary)" strokeWidth="3"
@@ -304,19 +281,20 @@ export default function JobsPage() {
                                                     strokeLinecap="round" style={{ transition: "stroke-dashoffset 0.5s ease" }}
                                                 />
                                             </svg>
-                                            <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 700 }}>
+                                            <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-slate-200">
                                                 {job.progress}%
                                             </span>
                                         </div>
                                     )}
-                                    <span style={{
-                                        display: "inline-flex", alignItems: "center", gap: 4,
-                                        padding: "4px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600,
-                                        color: statusInfo.color,
-                                        background: `${statusInfo.color}15`,
-                                        border: `1px solid ${statusInfo.color}25`,
-                                    }}>
-                                        {isProcessing && <span style={{ width: 5, height: 5, borderRadius: "50%", background: statusInfo.color, animation: "pulse-glow 1.5s infinite" }} />}
+                                    <span 
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border"
+                                        style={{
+                                            color: statusInfo.color,
+                                            backgroundColor: `${statusInfo.color}15`,
+                                            borderColor: `${statusInfo.color}25`,
+                                        }}
+                                    >
+                                        {isProcessing && <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: statusInfo.color }} />}
                                         {statusInfo.label}
                                     </span>
                                 </div>

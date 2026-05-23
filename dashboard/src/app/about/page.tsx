@@ -11,48 +11,27 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
     return (
-        <main>
+        <main className="overflow-hidden min-h-screen bg-[#030305] text-[#f8fafc]">
             <Navbar />
 
-            <div style={{ maxWidth: 900, margin: "0 auto", padding: "140px 24px 80px" }}>
+            <div className="max-w-4xl mx-auto px-6 pt-36 pb-24 md:pt-44 md:pb-36 relative">
+                {/* Ambient glow */}
+                <div className="absolute w-[250px] h-[250px] rounded-full bg-[#8b5cf6]/5 blur-[80px] pointer-events-none top-24 left-1/3" />
+
                 {/* Hero */}
-                <div style={{ textAlign: "center", marginBottom: 80 }}>
-                    <div
-                        style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 10,
-                            marginBottom: 24,
-                        }}
-                    >
-                        <img src="/clipmint-logo.jpg" alt="ClipMint" style={{ height: 36, width: 36, borderRadius: 8, objectFit: "cover" }} />
-                        <span
-                            className="gradient-text"
-                            style={{ fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}
-                        >
+                <div className="text-center mb-16">
+                    <div className="inline-flex items-center gap-2.5 mb-6">
+                        <div className="w-9 h-9 rounded-lg overflow-hidden border border-white/10 shadow-md">
+                            <img src="/clipmint-logo.jpg" alt="ClipMint" className="w-full h-full object-cover" />
+                        </div>
+                        <span className="gradient-text font-black text-3xl tracking-tight bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4]">
                             ClipMint
                         </span>
                     </div>
-                    <h1
-                        style={{
-                            fontSize: "clamp(32px, 5vw, 48px)",
-                            fontWeight: 800,
-                            lineHeight: 1.15,
-                            marginBottom: 20,
-                        }}
-                    >
-                        Turning Long Videos Into{" "}
-                        <span className="gradient-text">Viral Moments</span>
+                    <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight">
+                        Turning Long Videos Into <span className="gradient-text bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4]">Viral Moments</span>
                     </h1>
-                    <p
-                        style={{
-                            fontSize: 18,
-                            color: "var(--text-secondary)",
-                            maxWidth: 600,
-                            margin: "0 auto",
-                            lineHeight: 1.7,
-                        }}
-                    >
+                    <p className="text-base sm:text-lg text-slate-400 max-w-xl mx-auto leading-relaxed">
                         ClipMint was built to solve a simple problem: content creators
                         spend hours editing long-form videos into short clips. We
                         automated the entire workflow with AI.
@@ -60,21 +39,12 @@ export default function AboutPage() {
                 </div>
 
                 {/* Story */}
-                <div className="glass-card" style={{ padding: 40, marginBottom: 32 }}>
-                    <h2
-                        style={{
-                            fontSize: 22,
-                            fontWeight: 700,
-                            marginBottom: 16,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 10,
-                        }}
-                    >
-                        <Lightbulb size={22} style={{ color: "var(--accent-orange)" }} />
-                        Our Story
+                <div className="glass-card p-8 md:p-10 mb-8">
+                    <h2 className="text-xl sm:text-2xl font-bold text-slate-200 mb-4 flex items-center gap-2.5">
+                        <Lightbulb size={22} className="text-[#f59e0b]" />
+                        <span>Our Story</span>
                     </h2>
-                    <p style={{ color: "var(--text-secondary)", lineHeight: 1.8, fontSize: 15 }}>
+                    <p className="text-slate-400 leading-relaxed text-sm sm:text-base">
                         ClipMint started as a personal tool — a weekend project to help
                         podcast creators turn 1-hour episodes into scroll-stopping clips.
                         After seeing the quality of AI transcription and the
@@ -82,14 +52,7 @@ export default function AboutPage() {
                         become a product that saves creators thousands of hours every
                         month.
                     </p>
-                    <p
-                        style={{
-                            color: "var(--text-secondary)",
-                            lineHeight: 1.8,
-                            fontSize: 15,
-                            marginTop: 12,
-                        }}
-                    >
+                    <p className="text-slate-400 leading-relaxed text-sm sm:text-base mt-4">
                         Today, ClipMint processes videos end-to-end: downloading,
                         transcribing, detecting viral moments using AI, clipping with
                         precision, and rendering studio-quality animated captions — all
@@ -98,62 +61,30 @@ export default function AboutPage() {
                 </div>
 
                 {/* Values grid */}
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-                        gap: 24,
-                        marginBottom: 64,
-                    }}
-                >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-16">
                     {[
                         {
-                            icon: <Target size={24} />,
+                            icon: <Target size={22} />,
                             title: "Our Mission",
                             desc: "Democratize professional video editing. Every creator should have access to studio-quality clips and captions — regardless of budget or editing skill.",
                         },
                         {
-                            icon: <Rocket size={24} />,
+                            icon: <Rocket size={22} />,
                             title: "Our Vision",
                             desc: "Become the go-to AI platform for content repurposing. From a 1-hour podcast to 15 platform-ready clips — in under 20 minutes.",
                         },
                     ].map((item) => (
                         <div
                             key={item.title}
-                            className="glass-card"
-                            style={{ padding: 32 }}
+                            className="glass-card p-8 flex flex-col gap-4"
                         >
-                            <div
-                                style={{
-                                    width: 48,
-                                    height: 48,
-                                    borderRadius: 12,
-                                    background: "rgba(108, 92, 231, 0.12)",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    color: "var(--accent-primary)",
-                                    marginBottom: 16,
-                                }}
-                            >
+                            <div className="w-11 h-11 rounded-xl bg-[#8b5cf6]/10 flex items-center justify-center text-[#8b5cf6] border border-[#8b5cf6]/15">
                                 {item.icon}
                             </div>
-                            <h3
-                                style={{
-                                    fontSize: 18,
-                                    fontWeight: 700,
-                                    marginBottom: 10,
-                                }}
-                            >
+                            <h3 className="text-lg font-bold text-slate-200">
                                 {item.title}
                             </h3>
-                            <p
-                                style={{
-                                    color: "var(--text-secondary)",
-                                    fontSize: 14,
-                                    lineHeight: 1.7,
-                                }}
-                            >
+                            <p className="text-sm text-slate-400 leading-relaxed">
                                 {item.desc}
                             </p>
                         </div>
@@ -161,26 +92,14 @@ export default function AboutPage() {
                 </div>
 
                 {/* Company info */}
-                <div
-                    style={{
-                        textAlign: "center",
-                        padding: "48px 24px",
-                        color: "var(--text-secondary)",
-                        fontSize: 15,
-                        lineHeight: 1.7,
-                    }}
-                >
-                    <p>
-                        <strong style={{ color: "var(--text-primary)" }}>
-                            NovaMint Networks
-                        </strong>
-                    </p>
-                    <p>Founder of ClipMint - VIKASH MEENA</p>
-                    <p>Jaipur, Rajasthan, India</p>
-                    <p>
+                <div className="text-center text-slate-500 text-sm leading-relaxed border-t border-white/5 pt-8">
+                    <p className="font-bold text-slate-300">NovaMint Networks</p>
+                    <p className="mt-0.5">Founder of ClipMint - VIKASH MEENA</p>
+                    <p className="mt-0.5">Jaipur, Rajasthan, India</p>
+                    <p className="mt-2">
                         <a
                             href="mailto:ClipMintApp@gmail.com"
-                            style={{ color: "var(--accent-secondary)", textDecoration: "none" }}
+                            className="text-[#c084fc] hover:text-[#8b5cf6] no-underline font-medium transition-colors"
                         >
                             ClipMintApp@gmail.com
                         </a>

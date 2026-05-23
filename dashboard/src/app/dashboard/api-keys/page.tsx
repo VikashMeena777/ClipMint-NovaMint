@@ -152,69 +152,64 @@ export default function ApiKeysPage() {
     return (
         <div>
             {/* ─── Header ─── */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                 <div>
-                    <h1 style={{ fontSize: "clamp(22px, 3vw, 28px)", fontWeight: 800, marginBottom: 4 }}>API Keys</h1>
-                    <p style={{ color: "var(--text-muted)", fontSize: 14 }}>
+                    <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-100 mb-1">API Keys</h1>
+                    <p className="text-sm text-[#64748b]">
                         Manage API keys for programmatic access to ClipMint
                     </p>
                 </div>
-                <button className="btn-primary" onClick={() => setShowCreateModal(true)}>
+                <button className="btn-primary py-2.5 px-5 text-sm font-semibold flex items-center gap-2 shadow-lg" onClick={() => setShowCreateModal(true)}>
                     <Plus size={16} /> Create Key
                 </button>
             </div>
 
             {/* ─── API Overview Stats ─── */}
-            <div className="dash-grid-3" style={{ marginBottom: 24 }}>
+            <div className="dash-grid-3 mb-6">
                 <div className="stat-card">
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                        <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 500 }}>Active Keys</span>
-                        <div className="stat-icon-bg" style={{ background: "rgba(108,92,231,0.12)" }}>
-                            <Key size={18} style={{ color: "var(--accent-primary)" }} />
+                    <div className="flex justify-between items-center mb-2.5">
+                        <span className="text-xs text-[#64748b] font-semibold uppercase tracking-wider">Active Keys</span>
+                        <div className="stat-icon-bg bg-[#8b5cf6]/10 border border-[#8b5cf6]/10">
+                            <Key size={18} className="text-[#8b5cf6]" />
                         </div>
                     </div>
-                    <div style={{ fontSize: 28, fontWeight: 800 }}>{loading ? <div className="skeleton" style={{ height: 28, width: 40 }} /> : activeKeys}</div>
+                    <div className="text-3xl font-bold tracking-tight text-slate-100">{loading ? <div className="skeleton h-8 w-10" /> : activeKeys}</div>
                 </div>
                 <div className="stat-card">
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                        <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 500 }}>Requests Today</span>
-                        <div className="stat-icon-bg" style={{ background: "rgba(0,230,118,0.12)" }}>
-                            <Activity size={18} style={{ color: "var(--accent-green)" }} />
+                    <div className="flex justify-between items-center mb-2.5">
+                        <span className="text-xs text-[#64748b] font-semibold uppercase tracking-wider">Requests Today</span>
+                        <div className="stat-icon-bg bg-[#10b981]/10 border border-[#10b981]/10">
+                            <Activity size={18} className="text-[#10b981]" />
                         </div>
                     </div>
-                    <div style={{ fontSize: 28, fontWeight: 800 }}>{loading ? <div className="skeleton" style={{ height: 28, width: 40 }} /> : totalRequests}</div>
+                    <div className="text-3xl font-bold tracking-tight text-slate-100">{loading ? <div className="skeleton h-8 w-10" /> : totalRequests}</div>
                 </div>
                 <div className="stat-card">
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                        <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 500 }}>Total Keys</span>
-                        <div className="stat-icon-bg" style={{ background: "rgba(0,229,255,0.12)" }}>
-                            <Shield size={18} style={{ color: "var(--accent-cyan)" }} />
+                    <div className="flex justify-between items-center mb-2.5">
+                        <span className="text-xs text-[#64748b] font-semibold uppercase tracking-wider">Total Keys</span>
+                        <div className="stat-icon-bg bg-[#06b6d4]/10 border border-[#06b6d4]/10">
+                            <Shield size={18} className="text-[#06b6d4]" />
                         </div>
                     </div>
-                    <div style={{ fontSize: 28, fontWeight: 800 }}>{loading ? <div className="skeleton" style={{ height: 28, width: 40 }} /> : keys.length}</div>
+                    <div className="text-3xl font-bold tracking-tight text-slate-100">{loading ? <div className="skeleton h-8 w-10" /> : keys.length}</div>
                 </div>
             </div>
 
             {/* ─── Documentation Info ─── */}
-            <div className="glass-card" style={{ padding: 20, marginBottom: 24 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div style={{ display: "flex", gap: 12 }}>
-                        <Code2 size={20} style={{ color: "var(--accent-primary)", flexShrink: 0, marginTop: 2 }} />
+            <div className="glass-card p-5 mb-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div className="flex items-start gap-3">
+                        <Code2 size={20} className="text-[#8b5cf6] flex-shrink-0 mt-0.5" />
                         <div>
-                            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>API Documentation</div>
-                            <p style={{ color: "var(--text-secondary)", fontSize: 13, lineHeight: 1.6 }}>
-                                Use your API key in the <code style={{ background: "var(--bg-secondary)", padding: "2px 6px", borderRadius: 4, fontSize: 12 }}>Authorization: Bearer cm_****</code> header.
+                            <div className="text-sm font-semibold text-slate-200 mb-1">API Documentation</div>
+                            <p className="text-xs text-slate-400 leading-relaxed">
+                                Use your API key in the <code className="bg-[#08080c] border border-white/5 px-1.5 py-0.5 rounded font-mono text-[11px] text-slate-300">Authorization: Bearer cm_****</code> header.
                             </p>
                         </div>
                     </div>
                     <button
                         onClick={() => setShowSnippets(!showSnippets)}
-                        style={{
-                            background: "none", border: "1px solid var(--border-subtle)",
-                            borderRadius: 8, padding: "6px 12px", cursor: "pointer",
-                            color: "var(--text-secondary)", fontSize: 12, fontWeight: 500,
-                            display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s",
-                        }}
+                        className="btn-secondary text-xs px-3.5 py-2 flex items-center gap-1.5 cursor-pointer"
                     >
                         <Terminal size={13} />
                         {showSnippets ? "Hide" : "Show"} Examples
@@ -224,14 +219,13 @@ export default function ApiKeysPage() {
 
                 {/* Code Snippets */}
                 {showSnippets && (
-                    <div style={{ marginTop: 16, animation: "fadeInUp 0.3s ease" }}>
-                        <div className="tab-nav" style={{ marginBottom: 12 }}>
+                    <div className="mt-4 animate-fade-in-up">
+                        <div className="tab-nav mb-3">
                             {CODE_SNIPPETS.map((snippet, i) => (
                                 <button
                                     key={snippet.lang}
-                                    className={`tab-item ${activeSnippet === i ? "active" : ""}`}
+                                    className={`tab-item text-xs px-3 py-1.5 ${activeSnippet === i ? "active" : ""}`}
                                     onClick={() => setActiveSnippet(i)}
-                                    style={{ padding: "6px 12px", fontSize: 12 }}
                                 >
                                     {snippet.lang}
                                 </button>
@@ -239,7 +233,7 @@ export default function ApiKeysPage() {
                         </div>
                         <div className="code-block">
                             <span className="code-lang">{CODE_SNIPPETS[activeSnippet].lang}</span>
-                            <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", margin: 0 }}>
+                            <pre className="whitespace-pre-wrap break-all m-0">
                                 {CODE_SNIPPETS[activeSnippet].code}
                             </pre>
                             <button
@@ -248,14 +242,9 @@ export default function ApiKeysPage() {
                                     setCopiedPrefix("snippet");
                                     setTimeout(() => setCopiedPrefix(null), 2000);
                                 }}
-                                style={{
-                                    position: "absolute", top: 8, right: 60, background: "var(--bg-card)",
-                                    border: "1px solid var(--border-subtle)", borderRadius: 6,
-                                    padding: "4px 8px", cursor: "pointer", color: "var(--text-muted)",
-                                    fontSize: 11, display: "flex", alignItems: "center", gap: 4,
-                                }}
+                                className="absolute top-2 right-12 bg-[#0d0c12] border border-white/5 hover:border-[#8b5cf6]/35 rounded-lg px-2.5 py-1.5 cursor-pointer text-[#64748b] hover:text-slate-200 text-[10px] flex items-center gap-1 transition-all"
                             >
-                                {copiedPrefix === "snippet" ? <><Check size={11} style={{ color: "var(--accent-green)" }} /> Copied</> : <><Copy size={11} /> Copy</>}
+                                {copiedPrefix === "snippet" ? <><Check size={11} className="text-[#10b981]" /> Copied</> : <><Copy size={11} /> Copy</>}
                             </button>
                         </div>
                     </div>
@@ -264,44 +253,42 @@ export default function ApiKeysPage() {
 
             {/* ─── Keys List ─── */}
             {loading ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    {[1, 2].map((i) => <div key={i} className="skeleton" style={{ height: 88, borderRadius: 16 }} />)}
+                <div className="flex flex-col gap-3">
+                    {[1, 2].map((i) => <div key={i} className="skeleton h-20 rounded-2xl" />)}
                 </div>
             ) : keys.length === 0 ? (
-                <div className="glass-card" style={{ padding: 48, textAlign: "center" }}>
-                    <Key size={40} style={{ color: "var(--text-muted)", marginBottom: 16, opacity: 0.4 }} />
-                    <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 8 }}>No API Keys Yet</h3>
-                    <p style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 20 }}>
+                <div className="glass-card p-12 text-center max-w-md mx-auto">
+                    <Key size={40} className="text-[#64748b] opacity-40 mb-4 mx-auto" />
+                    <h3 className="text-base font-bold text-slate-200 mb-2">No API Keys Yet</h3>
+                    <p className="text-sm text-[#64748b] mb-5 leading-relaxed">
                         Create your first API key to start using ClipMint programmatically
                     </p>
-                    <button className="btn-primary" onClick={() => setShowCreateModal(true)}>
+                    <button className="btn-primary py-2.5 px-5 text-sm font-semibold flex items-center gap-2 shadow-lg" onClick={() => setShowCreateModal(true)}>
                         <Plus size={16} /> Create Your First Key
                     </button>
                 </div>
             ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div className="flex flex-col gap-3">
                     {keys.map((key, i) => (
                         <div
                             key={key.id}
-                            className="glass-card animate-fade-in-up"
-                            style={{ padding: "18px 22px", animationDelay: `${i * 0.05}s` }}
+                            className="glass-card p-5 animate-fade-in-up"
+                            style={{ animationDelay: `${i * 0.05}s` }}
                         >
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 14, flex: 1, minWidth: 0 }}>
+                            <div className="flex justify-between items-center flex-wrap gap-4">
+                                <div className="flex items-center gap-3.5 flex-1 min-w-0">
                                     {/* Status dot */}
-                                    <div style={{
-                                        width: 10, height: 10, borderRadius: "50%", flexShrink: 0,
-                                        background: key.is_active ? "var(--accent-green)" : "var(--text-muted)",
-                                        boxShadow: key.is_active ? "0 0 8px rgba(0,230,118,0.4)" : "none",
-                                    }} />
-                                    <div style={{ minWidth: 0 }}>
-                                        <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>{key.name}</div>
-                                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                                            <code style={{
-                                                fontSize: 12, color: "var(--text-muted)",
-                                                background: "var(--bg-secondary)", padding: "3px 8px",
-                                                borderRadius: 6, fontFamily: "'Fira Code', monospace",
-                                            }}>
+                                    <div 
+                                        className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                                            key.is_active 
+                                                ? "bg-[#10b981] shadow-[0_0_8px_rgba(16,185,129,0.4)]" 
+                                                : "bg-[#64748b]"
+                                        }`} 
+                                    />
+                                    <div className="min-w-0">
+                                        <div className="text-sm font-bold text-slate-200 mb-1">{key.name}</div>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <code className="text-xs text-[#64748b] bg-[#08080c] px-2.5 py-1 rounded-md border border-white/5 font-mono">
                                                 {key.key_prefix}••••••••••••
                                             </code>
                                             <button
@@ -310,7 +297,7 @@ export default function ApiKeysPage() {
                                                     setCopiedPrefix(key.id);
                                                     setTimeout(() => setCopiedPrefix(null), 2000);
                                                 }}
-                                                style={{ background: "none", border: "none", cursor: "pointer", color: copiedPrefix === key.id ? "var(--accent-green)" : "var(--text-muted)", padding: 4, display: "flex", alignItems: "center", gap: 4, fontSize: 11 }}
+                                                className="bg-transparent border-none cursor-pointer p-1 text-[#64748b] hover:text-[#10b981] flex items-center gap-1 text-[10px] font-semibold transition-colors"
                                             >
                                                 {copiedPrefix === key.id ? <><Check size={12} /> Copied</> : <Copy size={12} />}
                                             </button>
@@ -318,23 +305,18 @@ export default function ApiKeysPage() {
                                     </div>
                                 </div>
 
-                                <div style={{ display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
-                                    <div style={{ textAlign: "right" }}>
-                                        <div style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 500 }}>
+                                <div className="flex items-center gap-4 flex-shrink-0 ml-auto sm:ml-0">
+                                    <div className="text-left sm:text-right">
+                                        <div className="text-xs text-slate-300 font-semibold">
                                             {key.requests_today} requests today
                                         </div>
-                                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                                        <div className="text-[10px] text-[#64748b]">
                                             {key.last_used_at ? `Last used ${timeAgo(key.last_used_at)}` : "Never used"}
                                         </div>
                                     </div>
                                     <button
                                         onClick={() => setDeleteConfirm(key.id)}
-                                        style={{
-                                            background: "none", border: "1px solid rgba(255,82,82,0.2)",
-                                            cursor: "pointer", color: "var(--accent-red)",
-                                            padding: "6px 8px", borderRadius: 8,
-                                            transition: "all 0.2s", display: "flex", alignItems: "center",
-                                        }}
+                                        className="bg-transparent border border-red-500/20 hover:border-red-500/40 hover:bg-red-500/5 cursor-pointer text-[#ef4444] p-2 rounded-xl transition-all flex items-center justify-center"
                                         title="Delete key"
                                     >
                                         <Trash2 size={14} />
@@ -349,41 +331,35 @@ export default function ApiKeysPage() {
             {/* ─── Delete Confirmation Modal ─── */}
             {deleteConfirm && (
                 <div
-                    style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-100"
                     onClick={() => setDeleteConfirm(null)}
                 >
                     <div
-                        className="glass-card animate-scale-in"
-                        style={{ padding: 28, width: 420, maxWidth: "90vw" }}
+                        className="glass-card animate-scale-in p-6 w-full max-w-sm mx-4 shadow-2xl border-white/5"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                            <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(255,82,82,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                <AlertTriangle size={20} style={{ color: "var(--accent-red)" }} />
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center flex-shrink-0 text-[#ef4444]">
+                                <AlertTriangle size={20} />
                             </div>
                             <div>
-                                <h3 style={{ fontSize: 18, fontWeight: 700 }}>Delete API Key</h3>
-                                <p style={{ fontSize: 13, color: "var(--text-muted)" }}>
+                                <h3 className="text-base font-bold text-slate-100">Delete API Key</h3>
+                                <p className="text-xs text-[#64748b] font-medium">
                                     {keys.find(k => k.id === deleteConfirm)?.name}
                                 </p>
                             </div>
                         </div>
-                        <div style={{
-                            padding: "12px 16px", borderRadius: 10,
-                            background: "rgba(255,82,82,0.06)", border: "1px solid rgba(255,82,82,0.15)",
-                            marginBottom: 20,
-                        }}>
-                            <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6 }}>
-                                This action <strong style={{ color: "var(--accent-red)" }}>cannot be undone</strong>. Any applications using this key will immediately lose access. Make sure to update your integrations before deleting.
+                        <div className="p-3.5 rounded-xl bg-red-500/5 border border-red-500/15 mb-5">
+                            <p className="text-xs text-slate-300 leading-relaxed">
+                                This action <strong className="text-[#ef4444] font-bold">cannot be undone</strong>. Any applications using this key will immediately lose access. Make sure to update your integrations before deleting.
                             </p>
                         </div>
-                        <div style={{ display: "flex", gap: 12 }}>
-                            <button className="btn-secondary" style={{ flex: 1, justifyContent: "center" }} onClick={() => setDeleteConfirm(null)}>
+                        <div className="flex gap-3">
+                            <button className="btn-secondary flex-1 justify-center py-2.5 text-xs font-semibold" onClick={() => setDeleteConfirm(null)}>
                                 Cancel
                             </button>
                             <button
-                                className="btn-primary"
-                                style={{ flex: 1, justifyContent: "center", background: "var(--accent-red)" }}
+                                className="btn-primary flex-1 justify-center py-2.5 text-xs font-semibold bg-[#ef4444] hover:bg-red-600 shadow-lg shadow-red-600/15"
                                 onClick={() => deleteKey(deleteConfirm)}
                             >
                                 <Trash2 size={14} /> Delete Key
@@ -396,83 +372,71 @@ export default function ApiKeysPage() {
             {/* ─── Create Modal ─── */}
             {showCreateModal && (
                 <div
-                    style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-100"
                     onClick={closeModal}
                 >
                     <div
-                        className="glass-card animate-scale-in"
-                        style={{ padding: 32, width: 480, maxWidth: "90vw" }}
+                        className="glass-card animate-scale-in p-8 w-full max-w-md mx-4 shadow-2xl border-white/5"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {newRawKey ? (
                             <>
-                                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-                                    <div style={{ width: 36, height: 36, borderRadius: 8, background: "rgba(0,230,118,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                        <Check size={18} style={{ color: "var(--accent-green)" }} />
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-9 h-9 rounded-lg bg-[#10b981]/10 border border-[#10b981]/20 flex items-center justify-center flex-shrink-0 text-[#10b981]">
+                                        <Check size={18} />
                                     </div>
                                     <div>
-                                        <h3 style={{ fontSize: 18, fontWeight: 700 }}>Key Created!</h3>
-                                        <p style={{ fontSize: 12, color: "var(--text-muted)" }}>Copy this key now — you won&apos;t see it again</p>
+                                        <h3 className="text-base font-bold text-slate-100">Key Created!</h3>
+                                        <p className="text-xs text-[#64748b]">Copy this key now — you won&apos;t see it again</p>
                                     </div>
                                 </div>
-                                <div style={{
-                                    background: "var(--bg-primary)", padding: "14px 18px",
-                                    borderRadius: 10, fontFamily: "'Fira Code', monospace",
-                                    fontSize: 13, wordBreak: "break-all", marginBottom: 20,
-                                    border: "1px solid var(--border-subtle)",
-                                }}>
+                                <div className="bg-[#030305] border border-white/5 p-4 rounded-xl font-mono text-xs break-all mb-5 text-slate-200">
                                     {newRawKey}
                                 </div>
-                                <div style={{ display: "flex", gap: 12 }}>
+                                <div className="flex gap-3">
                                     <button
-                                        className="btn-primary"
-                                        style={{ flex: 1, justifyContent: "center" }}
+                                        className="btn-primary flex-1 justify-center py-2.5 text-xs font-semibold"
                                         onClick={() => { navigator.clipboard.writeText(newRawKey); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
                                     >
                                         {copied ? <><Check size={16} /> Copied!</> : <><Copy size={16} /> Copy Key</>}
                                     </button>
-                                    <button className="btn-secondary" style={{ flex: 1, justifyContent: "center" }} onClick={closeModal}>
+                                    <button className="btn-secondary flex-1 justify-center py-2.5 text-xs font-semibold" onClick={closeModal}>
                                         Done
                                     </button>
                                 </div>
                             </>
                         ) : (
                             <>
-                                <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>Create API Key</h3>
-                                <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20 }}>
+                                <h3 className="text-lg font-bold text-slate-100 mb-1.5">Create API Key</h3>
+                                <p className="text-xs text-[#64748b] mb-5">
                                     Give your key a descriptive name to easily identify it later
                                 </p>
-                                <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8, color: "var(--text-secondary)" }}>
+                                <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">
                                     Key Name
                                 </label>
                                 <input
                                     type="text" value={newKeyName}
                                     onChange={(e) => setNewKeyName(e.target.value)}
                                     placeholder="e.g. Production, Development, My App"
-                                    className="input-field" style={{ marginBottom: 20 }}
+                                    className="input-field mb-5"
                                     autoFocus
                                 />
                                 {error && (
-                                    <div style={{
-                                        padding: "10px 14px", borderRadius: 8,
-                                        background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)",
-                                        color: "#EF4444", fontSize: 13, marginBottom: 16,
-                                        display: "flex", alignItems: "center", gap: 8,
-                                    }}>
-                                        <AlertCircle size={14} /> {error}
+                                    <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-[#ef4444] text-xs font-semibold mb-4 flex items-center gap-2 animate-scale-in">
+                                        <AlertCircle size={14} className="flex-shrink-0" />
+                                        <span>{error}</span>
                                     </div>
                                 )}
-                                <div style={{ display: "flex", gap: 12 }}>
-                                    <button className="btn-secondary" style={{ flex: 1, justifyContent: "center" }} onClick={closeModal}>
+                                <div className="flex gap-3">
+                                    <button className="btn-secondary flex-1 justify-center py-2.5 text-xs font-semibold" onClick={closeModal}>
                                         Cancel
                                     </button>
                                     <button
-                                        className="btn-primary"
-                                        style={{ flex: 1, justifyContent: "center" }}
+                                        className="btn-primary flex-1 justify-center py-2.5 text-xs font-semibold"
                                         disabled={creating || !newKeyName.trim()}
                                         onClick={createKey}
                                     >
-                                        {creating ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <><Key size={16} /> Create</>}
+                                        {creating ? <Loader2 size={16} className="animate-spin" /> : <><Key size={16} /> Create</>}
                                     </button>
                                 </div>
                             </>

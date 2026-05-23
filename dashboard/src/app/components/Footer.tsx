@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-
 const FOOTER_COLUMNS = [
     {
         title: "Product",
@@ -42,56 +41,19 @@ const FOOTER_COLUMNS = [
 
 export default function Footer() {
     return (
-        <footer
-            style={{
-                borderTop: "1px solid var(--border-subtle)",
-                padding: "64px 24px 32px",
-                background:
-                    "linear-gradient(180deg, transparent 0%, rgba(10, 10, 15, 0.8) 100%)",
-            }}
-        >
-            <div
-                style={{
-                    maxWidth: 1200,
-                    margin: "0 auto",
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                    gap: 48,
-                    marginBottom: 48,
-                }}
-            >
+        <footer className="border-t border-white/5 px-6 md:px-12 py-16 bg-gradient-to-b from-transparent to-[#08080c]/50">
+            <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-16 mb-12">
                 {FOOTER_COLUMNS.map((col) => (
-                    <div key={col.title}>
-                        <h4
-                            style={{
-                                fontSize: 14,
-                                fontWeight: 700,
-                                color: "var(--text-primary)",
-                                marginBottom: 20,
-                                letterSpacing: 0.5,
-                                textTransform: "uppercase",
-                            }}
-                        >
+                    <div key={col.title} className="flex flex-col gap-4">
+                        <h4 className="text-xs font-bold text-slate-300 uppercase tracking-widest">
                             {col.title}
                         </h4>
-                        <ul
-                            style={{
-                                listStyle: "none",
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: 12,
-                            }}
-                        >
+                        <ul className="list-none flex flex-col gap-3">
                             {col.links.map((link) => (
                                 <li key={link.label}>
                                     <Link
                                         href={link.href}
-                                        style={{
-                                            color: "var(--text-secondary)",
-                                            textDecoration: "none",
-                                            fontSize: 14,
-                                            transition: "color 0.3s ease",
-                                        }}
+                                        className="text-sm text-slate-400 no-underline hover:text-slate-200 transition-colors duration-200"
                                     >
                                         {link.label}
                                     </Link>
@@ -103,31 +65,20 @@ export default function Footer() {
             </div>
 
             {/* Bottom bar */}
-            <div
-                style={{
-                    borderTop: "1px solid var(--border-subtle)",
-                    paddingTop: 24,
-                    display: "flex",
-                    flexWrap: "wrap",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 16,
-                    maxWidth: 1200,
-                    margin: "0 auto",
-                }}
-            >
-                <div
-                    style={{ display: "flex", alignItems: "center", gap: 8 }}
-                >
-                    <img src="/clipmint-logo.jpg" alt="ClipMint" style={{ height: 18, width: 18, borderRadius: 4, objectFit: "cover" }} />
-                    <span
-                        className="gradient-text"
-                        style={{ fontWeight: 700, fontSize: 15 }}
-                    >
+            <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 max-w-6xl mx-auto">
+                <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-md overflow-hidden border border-white/10">
+                        <img
+                            src="/clipmint-logo.jpg"
+                            alt="ClipMint"
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                    <span className="gradient-text font-bold text-md bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4]">
                         ClipMint
                     </span>
                 </div>
-                <span style={{ color: "var(--text-muted)", fontSize: 13 }}>
+                <span className="text-xs text-slate-500">
                     © 2026 NovaMint Networks. All rights reserved.
                 </span>
             </div>

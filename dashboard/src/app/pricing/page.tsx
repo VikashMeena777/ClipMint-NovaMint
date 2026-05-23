@@ -37,16 +37,17 @@ const PLANS = [
     {
         key: "creator" as const,
         name: "Creator",
-        monthlyPrice: "₹249",
-        annualPrice: "₹199",
+        monthlyPrice: "₹499",
+        annualPrice: "₹399",
         period: "/month",
         features: [
-            "50 clips/month",
-            "5 videos/month",
+            "150 clips/month",
+            "30 videos/month",
             "1080p output",
             "No watermark",
             "All 9 caption styles",
             "Priority processing",
+            "API access",
             "Email support",
         ],
         highlighted: true,
@@ -202,7 +203,6 @@ export default function PricingPage() {
                     showToast("error", result.error.message || "Payment failed. Please try again.");
                     setLoadingPlan(null);
                 } else if (result.redirect) {
-                    // Payment will be verified on redirect
                     console.log("Payment redirecting...");
                 } else if (result.paymentDetails) {
                     // Payment completed in modal, verify on server
@@ -236,135 +236,77 @@ export default function PricingPage() {
     }
 
     return (
-        <main>
+        <main className="overflow-hidden min-h-screen bg-[#030305] text-[#f8fafc]">
             <Navbar />
 
             {/* ─── Toast ─── */}
             {toast && (
                 <div
-                    style={{
-                        position: "fixed",
-                        top: 24,
-                        right: 24,
-                        zIndex: 1000,
-                        padding: "14px 24px",
-                        borderRadius: 12,
-                        background: toast.type === "success" ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.15)",
-                        border: `1px solid ${toast.type === "success" ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.3)"}`,
-                        color: toast.type === "success" ? "#10B981" : "#EF4444",
-                        fontSize: 14,
-                        fontWeight: 600,
-                        backdropFilter: "blur(12px)",
-                        animation: "fadeIn 0.3s ease",
-                    }}
+                    className={`toast toast-${toast.type} fixed top-6 right-6 z-[1000] px-6 py-3.5 rounded-xl border font-semibold text-sm backdrop-blur-md animate-fade-in-up`}
                 >
                     {toast.message}
                 </div>
             )}
 
-            <div style={{ maxWidth: 1200, margin: "0 auto", padding: "140px 24px 80px" }}>
-                <div style={{ textAlign: "center", marginBottom: 48 }}>
-                    <h1 style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 800, marginBottom: 16 }}>
-                        Simple, <span className="gradient-text">Transparent</span> Pricing
+            <div className="max-w-6xl mx-auto px-6 pt-36 pb-24 md:pt-44 md:pb-36 relative">
+                {/* Ambient glow */}
+                <div className="absolute w-[300px] h-[300px] rounded-full bg-[#8b5cf6]/5 blur-[100px] pointer-events-none top-20 left-1/4" />
+
+                <div className="text-center mb-16">
+                    <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight">
+                        Simple, <span className="gradient-text bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4]">Transparent</span> Pricing
                     </h1>
-                    <p style={{ fontSize: 18, color: "var(--text-secondary)", maxWidth: 500, margin: "0 auto 32px", lineHeight: 1.6 }}>
+                    <p className="text-base sm:text-lg text-slate-400 max-w-lg mx-auto leading-relaxed mb-8">
                         Start free. Scale as you grow. No hidden fees.
                     </p>
 
                     {/* ─── Payment Type Toggle ─── */}
-                    <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+                    <div className="flex justify-center gap-3 mb-6 flex-wrap">
                         <button
                             onClick={() => setPaymentType("subscription")}
-                            style={{
-                                padding: "8px 20px",
-                                borderRadius: 8,
-                                border: `1px solid ${paymentType === "subscription" ? "var(--accent-primary)" : "var(--border-subtle)"}`,
-                                background: paymentType === "subscription" ? "rgba(108,92,231,0.12)" : "transparent",
-                                color: paymentType === "subscription" ? "var(--accent-primary)" : "var(--text-secondary)",
-                                fontWeight: 600,
-                                fontSize: 13,
-                                cursor: "pointer",
-                                transition: "all 0.3s ease",
-                                fontFamily: "inherit",
-                                display: "flex", alignItems: "center", gap: 6,
-                            }}
+                            className={`px-5 py-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 cursor-pointer transition-all duration-300 ${
+                                paymentType === "subscription"
+                                    ? "border-[#8b5cf6] bg-[#8b5cf6]/10 text-[#c084fc]"
+                                    : "border-white/5 bg-transparent text-slate-400 hover:text-slate-200"
+                            }`}
                         >
-                            <RefreshCw size={14} /> Subscription
+                            <RefreshCw size={13} />
+                            <span>Subscription</span>
                         </button>
                         <button
                             onClick={() => setPaymentType("one_time")}
-                            style={{
-                                padding: "8px 20px",
-                                borderRadius: 8,
-                                border: `1px solid ${paymentType === "one_time" ? "var(--accent-primary)" : "var(--border-subtle)"}`,
-                                background: paymentType === "one_time" ? "rgba(108,92,231,0.12)" : "transparent",
-                                color: paymentType === "one_time" ? "var(--accent-primary)" : "var(--text-secondary)",
-                                fontWeight: 600,
-                                fontSize: 13,
-                                cursor: "pointer",
-                                transition: "all 0.3s ease",
-                                fontFamily: "inherit",
-                                display: "flex", alignItems: "center", gap: 6,
-                            }}
+                            className={`px-5 py-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 cursor-pointer transition-all duration-300 ${
+                                paymentType === "one_time"
+                                    ? "border-[#8b5cf6] bg-[#8b5cf6]/10 text-[#c084fc]"
+                                    : "border-white/5 bg-transparent text-slate-400 hover:text-slate-200"
+                            }`}
                         >
-                            <CreditCard size={14} /> One-Time (30 Days)
+                            <CreditCard size={13} />
+                            <span>One-Time (30 Days)</span>
                         </button>
                     </div>
 
                     {/* ─── Billing Period Toggle (only for subscriptions) ─── */}
                     {paymentType === "subscription" && (
-                        <div
-                            style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 16,
-                                padding: "6px",
-                                borderRadius: 12,
-                                background: "var(--bg-secondary)",
-                                border: "1px solid var(--border-subtle)",
-                            }}
-                        >
+                        <div className="inline-flex items-center gap-1.5 p-1.5 rounded-xl bg-white/2.5 border border-white/5 shadow-inner">
                             <button
                                 onClick={() => setAnnual(false)}
-                                style={{
-                                    padding: "10px 24px",
-                                    borderRadius: 8,
-                                    border: "none",
-                                    background: !annual ? "var(--accent-primary)" : "transparent",
-                                    color: !annual ? "white" : "var(--text-secondary)",
-                                    fontWeight: 600,
-                                    fontSize: 14,
-                                    cursor: "pointer",
-                                    transition: "all 0.3s ease",
-                                    fontFamily: "inherit",
-                                }}
+                                className={`px-5 py-2 rounded-lg border-none font-semibold text-sm cursor-pointer transition-all duration-300 ${
+                                    !annual ? "bg-[#8b5cf6] text-white" : "bg-transparent text-slate-400 hover:text-slate-200"
+                                }`}
                             >
                                 Monthly
                             </button>
                             <button
                                 onClick={() => setAnnual(true)}
-                                style={{
-                                    padding: "10px 24px",
-                                    borderRadius: 8,
-                                    border: "none",
-                                    background: annual ? "var(--accent-primary)" : "transparent",
-                                    color: annual ? "white" : "var(--text-secondary)",
-                                    fontWeight: 600,
-                                    fontSize: 14,
-                                    cursor: "pointer",
-                                    transition: "all 0.3s ease",
-                                    fontFamily: "inherit",
-                                }}
+                                className={`px-5 py-2 rounded-lg border-none font-semibold text-sm cursor-pointer transition-all duration-300 flex items-center gap-1.5 ${
+                                    annual ? "bg-[#8b5cf6] text-white" : "bg-transparent text-slate-400 hover:text-slate-200"
+                                }`}
                             >
-                                Annual{" "}
-                                <span
-                                    style={{
-                                        fontSize: 11,
-                                        fontWeight: 700,
-                                        color: annual ? "rgba(255,255,255,0.8)" : "var(--accent-green)",
-                                        marginLeft: 4,
-                                    }}
-                                >
+                                <span>Annual</span>
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                                    annual ? "bg-white/20 text-white" : "bg-[#10b981]/15 text-[#10b981]"
+                                }`}>
                                     Save 20%
                                 </span>
                             </button>
@@ -373,14 +315,7 @@ export default function PricingPage() {
                 </div>
 
                 {/* ─── Plans Grid ─── */}
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-                        gap: 24,
-                        marginBottom: 80,
-                    }}
-                >
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 items-stretch mb-24">
                     {PLANS.map((plan) => {
                         const isLoading = loadingPlan === plan.key;
                         const isFree = plan.key === "free";
@@ -389,132 +324,87 @@ export default function PricingPage() {
                         return (
                             <div
                                 key={plan.name}
-                                className="glass-card"
-                                style={{
-                                    padding: 32,
-                                    border: plan.highlighted ? "2px solid var(--accent-primary)" : undefined,
-                                    position: "relative",
-                                }}
+                                className={`glass-card p-8 flex flex-col justify-between ${
+                                    plan.highlighted ? "border-[#8b5cf6] border-2 shadow-lg shadow-[#8b5cf6]/10" : ""
+                                }`}
                             >
-                                {plan.highlighted && (
-                                    <div
-                                        style={{
-                                            position: "absolute",
-                                            top: -12,
-                                            left: "50%",
-                                            transform: "translateX(-50%)",
-                                            background: "var(--accent-primary)",
-                                            color: "white",
-                                            padding: "4px 16px",
-                                            borderRadius: 20,
-                                            fontSize: 11,
-                                            fontWeight: 700,
-                                            letterSpacing: 0.8,
-                                            textTransform: "uppercase",
-                                        }}
-                                    >
-                                        Most Popular
+                                <div className="relative">
+                                    {plan.highlighted && (
+                                        <div className="absolute -top-3.5 right-0 bg-[#8b5cf6] text-white px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                                            Popular
+                                        </div>
+                                    )}
+                                    <h3 className="text-lg font-bold text-slate-200 mb-3">
+                                        {plan.name}
+                                    </h3>
+                                    <div className="flex items-baseline gap-1 mb-2">
+                                        <span className="gradient-text font-black text-3xl bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4]">
+                                            {paymentType === "one_time"
+                                                ? plan.monthlyPrice
+                                                : annual
+                                                    ? plan.annualPrice
+                                                    : plan.monthlyPrice}
+                                        </span>
+                                        <span className="text-xs text-slate-500 font-medium">
+                                            {isFree
+                                                ? "forever"
+                                                : paymentType === "one_time"
+                                                    ? "/30 days"
+                                                    : plan.period}
+                                        </span>
                                     </div>
-                                )}
-                                <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12 }}>
-                                    {plan.name}
-                                </h3>
-                                <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 8 }}>
-                                    <span className="gradient-text" style={{ fontSize: 36, fontWeight: 800 }}>
-                                        {paymentType === "one_time"
-                                            ? plan.monthlyPrice
-                                            : annual
-                                                ? plan.annualPrice
-                                                : plan.monthlyPrice}
-                                    </span>
-                                    <span style={{ color: "var(--text-muted)", fontSize: 14 }}>
-                                        {isFree
-                                            ? "forever"
-                                            : paymentType === "one_time"
-                                                ? "/30 days"
-                                                : plan.period}
-                                    </span>
+
+                                    {/* Payment badge */}
+                                    {!isFree && !isContactSales && (
+                                        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold mb-6 ${
+                                            paymentType === "subscription"
+                                                ? "bg-[#8b5cf6]/10 text-[#c084fc]"
+                                                : "bg-[#10b981]/10 text-[#10b981]"
+                                        }`}>
+                                            {paymentType === "subscription" ? (
+                                                <><RefreshCw size={9} /> <span>Auto-renews</span></>
+                                            ) : (
+                                                <><Zap size={9} /> <span>One-time</span></>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <ul className="list-none flex flex-col gap-3 mb-8 mt-4">
+                                        {plan.features.map((f) => (
+                                            <li
+                                                key={f}
+                                                className="flex items-center gap-2.5 text-xs sm:text-sm text-slate-400"
+                                            >
+                                                <CheckCircle2
+                                                    size={14}
+                                                    className="text-[#10b981] flex-shrink-0"
+                                                />
+                                                <span>{f}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </div>
-
-                                {/* Payment badge */}
-                                {!isFree && !isContactSales && (
-                                    <div
-                                        style={{
-                                            display: "inline-flex",
-                                            alignItems: "center",
-                                            gap: 4,
-                                            padding: "3px 10px",
-                                            borderRadius: 6,
-                                            background: paymentType === "subscription" ? "rgba(108,92,231,0.1)" : "rgba(16,185,129,0.1)",
-                                            color: paymentType === "subscription" ? "var(--accent-primary)" : "var(--accent-green)",
-                                            fontSize: 11,
-                                            fontWeight: 600,
-                                            marginBottom: 16,
-                                        }}
-                                    >
-                                        {paymentType === "subscription" ? (
-                                            <><RefreshCw size={10} /> Auto-renews</>
-                                        ) : (
-                                            <><Zap size={10} /> One-time</>
-                                        )}
-                                    </div>
-                                )}
-
-                                <ul
-                                    style={{
-                                        listStyle: "none",
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        gap: 12,
-                                        marginBottom: 28,
-                                    }}
-                                >
-                                    {plan.features.map((f) => (
-                                        <li
-                                            key={f}
-                                            style={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                gap: 10,
-                                                color: "var(--text-secondary)",
-                                                fontSize: 14,
-                                            }}
-                                        >
-                                            <CheckCircle2
-                                                size={16}
-                                                style={{ color: "var(--accent-green)", flexShrink: 0 }}
-                                            />
-                                            {f}
-                                        </li>
-                                    ))}
-                                </ul>
 
                                 {isContactSales ? (
                                     <Link
                                         href="/contact"
-                                        className="btn-secondary"
-                                        style={{ width: "100%", justifyContent: "center", textDecoration: "none" }}
+                                        className="btn-secondary w-full py-2.5 text-sm"
                                     >
-                                        Contact Sales <ArrowRight size={16} />
+                                        <span>Contact Sales</span>
+                                        <ArrowRight size={14} />
                                     </Link>
                                 ) : (
                                     <button
                                         onClick={() => handleCheckout(plan.key)}
                                         disabled={isLoading}
-                                        className={plan.highlighted ? "btn-primary" : "btn-secondary"}
-                                        style={{
-                                            width: "100%",
-                                            justifyContent: "center",
-                                            cursor: isLoading ? "wait" : "pointer",
-                                            opacity: isLoading ? 0.7 : 1,
-                                            fontFamily: "inherit",
-                                        }}
+                                        className={`${plan.highlighted ? "btn-primary" : "btn-secondary"} w-full py-2.5 text-sm`}
                                     >
                                         {isLoading ? (
-                                            <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
+                                            <Loader2 size={14} className="animate-spin" />
                                         ) : (
                                             <>
-                                                {plan.cta} <ArrowRight size={16} />
+                                                <span>{plan.cta}</span>
+                                                <ArrowRight size={14} />
                                             </>
                                         )}
                                     </button>
@@ -525,26 +415,23 @@ export default function PricingPage() {
                 </div>
 
                 {/* ─── Feature Comparison Table ─── */}
-                <div style={{ marginBottom: 80 }}>
-                    <h2 style={{ fontSize: 28, fontWeight: 800, textAlign: "center", marginBottom: 32 }}>
-                        Compare <span className="gradient-text">Plans</span>
+                <div className="mb-24">
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-center mb-8">
+                        Compare <span className="gradient-text bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4]">Plans</span>
                     </h2>
-                    <div className="glass-card" style={{ overflowX: "auto", padding: 0 }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, minWidth: 600 }}>
+                    <div className="glass-card overflow-x-auto p-0">
+                        <table className="w-full border-collapse text-sm min-w-[640px]">
                             <thead>
-                                <tr style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-                                    <th style={{ textAlign: "left", padding: "16px 20px", color: "var(--text-muted)", fontWeight: 600 }}>
+                                <tr className="border-b border-white/5">
+                                    <th className="text-left py-4 px-6 text-slate-500 font-semibold text-xs uppercase tracking-wider">
                                         Feature
                                     </th>
                                     {PLANS.map((p) => (
                                         <th
                                             key={p.name}
-                                            style={{
-                                                textAlign: "center",
-                                                padding: "16px 12px",
-                                                color: p.highlighted ? "var(--accent-secondary)" : "var(--text-primary)",
-                                                fontWeight: 700,
-                                            }}
+                                            className={`text-center py-4 px-3 font-bold text-xs uppercase tracking-wider ${
+                                                p.highlighted ? "text-[#c084fc] bg-[#8b5cf6]/5" : "text-slate-300"
+                                            }`}
                                         >
                                             {p.name}
                                         </th>
@@ -565,31 +452,30 @@ export default function PricingPage() {
                                 ].map((row, i) => (
                                     <tr
                                         key={row[0]}
-                                        style={{
-                                            borderBottom: i < 8 ? "1px solid rgba(42, 42, 69, 0.5)" : undefined,
-                                        }}
+                                        className="border-b border-white/5 last:border-0 hover:bg-white/1"
                                     >
-                                        <td style={{ padding: "14px 20px", color: "var(--text-secondary)", fontWeight: 500 }}>
+                                        <td className="py-4 px-6 text-slate-400 font-medium">
                                             {row[0]}
                                         </td>
-                                        {row.slice(1).map((val, j) => (
-                                            <td
-                                                key={j}
-                                                style={{
-                                                    textAlign: "center",
-                                                    padding: "14px 12px",
-                                                    color:
+                                        {row.slice(1).map((val, j) => {
+                                            const isHighlight = PLANS[j].highlighted;
+                                            return (
+                                                <td
+                                                    key={j}
+                                                    className={`text-center py-4 px-3 ${
+                                                        isHighlight ? "bg-[#8b5cf6]/2" : ""
+                                                    } ${
                                                         val === "✓"
-                                                            ? "var(--accent-green)"
+                                                            ? "text-[#10b981] font-bold"
                                                             : val === "—"
-                                                                ? "var(--text-muted)"
-                                                                : "var(--text-primary)",
-                                                    fontWeight: val === "✓" ? 700 : 400,
-                                                }}
-                                            >
-                                                {val}
-                                            </td>
-                                        ))}
+                                                                ? "text-slate-600"
+                                                                : "text-slate-300 font-medium"
+                                                    }`}
+                                                >
+                                                    {val}
+                                                </td>
+                                            );
+                                        })}
                                     </tr>
                                 ))}
                             </tbody>
@@ -598,38 +484,30 @@ export default function PricingPage() {
                 </div>
 
                 {/* ─── Cashfree Trust Badge ─── */}
-                <div style={{ textAlign: "center", marginBottom: 48 }}>
-                    <div
-                        className="glass-card"
-                        style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 12,
-                            padding: "14px 28px",
-                        }}
-                    >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" strokeWidth="2">
+                <div className="text-center mb-24">
+                    <div className="glass-card inline-flex items-center gap-3 py-3.5 px-6 border-white/5 hover:border-white/5 transform-none">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" className="flex-shrink-0">
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                         </svg>
-                        <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>
-                            Secure payments powered by <strong style={{ color: "var(--text-primary)" }}>Cashfree</strong> • 256-bit SSL encryption
+                        <span className="text-xs text-slate-400 font-medium leading-none">
+                            Secure payments powered by <strong className="text-slate-200">Cashfree</strong> • 256-bit SSL encryption
                         </span>
                     </div>
                 </div>
 
                 {/* ─── Billing FAQ ─── */}
-                <div style={{ maxWidth: 700, margin: "0 auto" }}>
-                    <h2 style={{ fontSize: 28, fontWeight: 800, textAlign: "center", marginBottom: 32 }}>
-                        Billing <span className="gradient-text">FAQ</span>
+                <div className="max-w-2xl mx-auto w-full">
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-center mb-8">
+                        Billing <span className="gradient-text bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4]">FAQ</span>
                     </h2>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    <div className="flex flex-col gap-3.5">
                         {BILLING_FAQ.map((faq, i) => (
                             <div key={i} className={`faq-item ${openFaq === i ? "open" : ""}`}>
-                                <button className="faq-question" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
-                                    {faq.q}
+                                <button className="faq-question w-full flex justify-between items-center text-left py-5 px-6 font-semibold" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+                                    <span>{faq.q}</span>
                                     <ChevronDown size={18} className="faq-chevron" />
                                 </button>
-                                <div className="faq-answer">{faq.a}</div>
+                                <div className="faq-answer px-6 pb-5 text-sm text-slate-400 leading-relaxed">{faq.a}</div>
                             </div>
                         ))}
                     </div>

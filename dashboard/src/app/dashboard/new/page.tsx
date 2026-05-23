@@ -73,45 +73,41 @@ export default function NewVideoPage() {
     };
 
     return (
-        <div style={{ maxWidth: 700, margin: "0 auto" }}>
+        <div className="max-w-2xl mx-auto">
             {/* ─── Step Progress ─── */}
-            <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 36 }}>
+            <div className="flex items-center justify-between gap-2 mb-8">
                 {STEPS.map((step, i) => (
-                    <div key={step.num} style={{ display: "flex", alignItems: "center", flex: 1 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <div style={{
-                                width: 30, height: 30, borderRadius: "50%",
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                fontSize: 12, fontWeight: 700,
-                                background: currentStep >= step.num ? "var(--accent-primary)" : "var(--bg-secondary)",
-                                color: currentStep >= step.num ? "white" : "var(--text-muted)",
-                                border: currentStep >= step.num ? "none" : "1px solid var(--border-subtle)",
-                                transition: "all 0.3s ease",
-                            }}>
+                    <div key={step.num} className="flex items-center flex-1 last:flex-initial">
+                        <div className="flex items-center gap-2.5 flex-shrink-0">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
+                                currentStep >= step.num 
+                                    ? "bg-[#8b5cf6] text-white shadow-[0_0_12px_rgba(139,92,246,0.3)]" 
+                                    : "bg-[#08080c] text-[#64748b] border border-white/5"
+                            }`}>
                                 {currentStep > step.num ? <Check size={14} /> : step.num}
                             </div>
-                            <span style={{ fontSize: 12, fontWeight: 500, color: currentStep >= step.num ? "var(--text-primary)" : "var(--text-muted)" }}>
+                            <span className={`text-xs font-semibold ${currentStep >= step.num ? "text-slate-100" : "text-[#64748b]"}`}>
                                 {step.label}
                             </span>
                         </div>
                         {i < STEPS.length - 1 && (
-                            <div style={{ flex: 1, height: 2, margin: "0 12px", background: currentStep > step.num ? "var(--accent-primary)" : "var(--border-subtle)", borderRadius: 1, transition: "background 0.3s ease" }} />
+                            <div className={`flex-1 h-0.5 mx-3 rounded-full transition-all duration-300 ${currentStep > step.num ? "bg-[#8b5cf6]" : "bg-white/5"}`} />
                         )}
                     </div>
                 ))}
             </div>
 
-            <h1 style={{ fontSize: "clamp(22px, 3vw, 28px)", fontWeight: 800, marginBottom: 4 }}>
-                <Zap size={24} style={{ color: "var(--accent-primary)", verticalAlign: "middle", marginRight: 8 }} />
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-1 text-slate-100 flex items-center gap-2">
+                <Zap size={24} className="text-[#8b5cf6]" />
                 Create New Video
             </h1>
-            <p style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 32 }}>
+            <p className="text-sm text-[#64748b] mb-8">
                 Upload a video and let AI create viral clips with animated captions
             </p>
 
             <form onSubmit={handleSubmit}>
                 {/* ─── Source Type Tabs ─── */}
-                <div className="tab-nav" style={{ marginBottom: 20 }}>
+                <div className="tab-nav mb-6">
                     {[
                         { value: "url" as const, label: "Paste URL", icon: <Link2 size={15} /> },
                         { value: "upload" as const, label: "Upload via Drive", icon: <Upload size={15} /> },
@@ -128,15 +124,15 @@ export default function NewVideoPage() {
 
                 {/* ─── URL Input ─── */}
                 {sourceType === "url" && (
-                    <div style={{ marginBottom: 28 }}>
-                        <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8, color: "var(--text-secondary)" }}>Video URL</label>
+                    <div className="mb-6">
+                        <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">Video URL</label>
                         <input
                             type="url" value={videoUrl}
                             onChange={(e) => { setVideoUrl(e.target.value); if (e.target.value.trim()) setCurrentStep(2); }}
                             placeholder="https://youtube.com/watch?v=... or Instagram/Facebook URL"
                             className="input-field" required
                         />
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8, fontSize: 12, color: "var(--text-muted)" }}>
+                        <div className="flex items-center gap-1.5 mt-2.5 text-xs text-[#64748b]">
                             <Info size={12} /> Supports YouTube, Instagram, Facebook, and direct MP4 links
                         </div>
                     </div>
@@ -144,27 +140,22 @@ export default function NewVideoPage() {
 
                 {/* ─── Upload via Drive ─── */}
                 {sourceType === "upload" && (
-                    <div style={{ marginBottom: 28 }}>
-                        <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8, color: "var(--text-secondary)" }}>
+                    <div className="mb-6">
+                        <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">
                             Upload via Google Drive
                         </label>
-                        <div className="glass-card" style={{ padding: 20, marginBottom: 14 }}>
-                            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                        <div className="glass-card p-5 mb-4">
+                            <div className="flex flex-col gap-4">
                                 {[
                                     { n: 1, t: "Upload to Google Drive", d: "Upload your video file to your Google Drive account" },
                                     { n: 2, t: 'Share with "Anyone with the link"', d: 'Right-click → Share → Change to "Anyone with the link" → Copy link' },
                                     { n: 3, t: "Paste the link below", d: "Paste your Google Drive share link and we'll handle the rest" },
                                 ].map((s) => (
-                                    <div key={s.n} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                                        <div style={{
-                                            width: 26, height: 26, borderRadius: "50%",
-                                            background: "rgba(108,92,231,0.15)",
-                                            display: "flex", alignItems: "center", justifyContent: "center",
-                                            flexShrink: 0, fontSize: 12, fontWeight: 700, color: "var(--accent-primary)",
-                                        }}>{s.n}</div>
+                                    <div key={s.n} className="flex items-start gap-3">
+                                        <div className="w-6 h-6 rounded-full bg-[#8b5cf6]/10 border border-[#8b5cf6]/20 flex items-center justify-center flex-shrink-0 text-xs font-bold text-[#8b5cf6]">{s.n}</div>
                                         <div>
-                                            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{s.t}</div>
-                                            <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>{s.d}</div>
+                                            <div className="text-xs font-bold text-slate-200 mb-0.5">{s.t}</div>
+                                            <div className="text-xs text-[#64748b] leading-relaxed">{s.d}</div>
                                         </div>
                                     </div>
                                 ))}
@@ -179,37 +170,36 @@ export default function NewVideoPage() {
                 )}
 
                 {/* ─── Caption Style Picker ─── */}
-                <div style={{ marginBottom: 28 }}>
-                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 10, color: "var(--text-secondary)" }}>Caption Style</label>
+                <div className="mb-6">
+                    <label className="block text-xs font-bold text-slate-300 mb-2.5 uppercase tracking-wider">Caption Style</label>
                     <div className="dash-grid-3">
                         {CAPTION_STYLES.map((style) => (
                             <button
                                 key={style.value} type="button"
                                 onClick={() => { setCaptionStyle(style.value); setCurrentStep(3); }}
-                                className="glass-card"
-                                style={{
-                                    padding: "12px 14px", textAlign: "left", cursor: "pointer",
-                                    borderColor: captionStyle === style.value ? "var(--accent-primary)" : undefined,
-                                    background: captionStyle === style.value ? "rgba(108,92,231,0.12)" : undefined,
-                                }}
+                                className={`glass-card p-4 text-left cursor-pointer transition-all ${
+                                    captionStyle === style.value 
+                                        ? "border-[#8b5cf6] bg-[#8b5cf6]/10 shadow-[0_0_15px_rgba(139,92,246,0.1)]" 
+                                        : "hover:border-white/10"
+                                }`}
                             >
-                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
-                                    <span style={{ fontSize: 13, fontWeight: 600, color: captionStyle === style.value ? "var(--text-primary)" : "var(--text-secondary)" }}>
+                                <div className="flex items-center justify-between mb-1">
+                                    <span className={`text-xs font-bold ${captionStyle === style.value ? "text-[#8b5cf6]" : "text-slate-300"}`}>
                                         {style.label}
                                     </span>
-                                    {captionStyle === style.value && <Check size={14} style={{ color: "var(--accent-primary)" }} />}
+                                    {captionStyle === style.value && <Check size={14} className="text-[#8b5cf6]" />}
                                 </div>
-                                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{style.description}</span>
+                                <span className="text-[10px] text-[#64748b] leading-tight block">{style.description}</span>
                             </button>
                         ))}
                     </div>
                 </div>
 
                 {/* ─── Max Clips ─── */}
-                <div style={{ marginBottom: 32 }}>
-                    <label style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 600, marginBottom: 10, color: "var(--text-secondary)" }}>
+                <div className="mb-8">
+                    <label className="flex justify-between items-center text-xs font-bold text-slate-300 mb-2.5 uppercase tracking-wider">
                         <span>Max Clips</span>
-                        <span style={{ color: "var(--accent-primary)", fontWeight: 700 }}>{maxClips}</span>
+                        <span className="text-[#8b5cf6] text-sm font-extrabold">{maxClips}</span>
                     </label>
                     <input
                         type="range"
@@ -217,44 +207,42 @@ export default function NewVideoPage() {
                         value={maxClips}
                         onChange={(e) => setMaxClips(Number(e.target.value))}
                         style={{
-                            width: "100%",
-                            background: `linear-gradient(to right, var(--accent-primary) 0%, var(--accent-primary) ${((maxClips - 1) / 19) * 100}%, var(--bg-secondary) ${((maxClips - 1) / 19) * 100}%, var(--bg-secondary) 100%)`,
-                            height: 6,
-                            borderRadius: 3
+                            background: `linear-gradient(to right, #8b5cf6 0%, #8b5cf6 ${((maxClips - 1) / 19) * 100}%, rgba(255, 255, 255, 0.08) ${((maxClips - 1) / 19) * 100}%, rgba(255, 255, 255, 0.08) 100%)`,
                         }}
                         className="custom-range"
                     />
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
+                    <div className="flex justify-between text-[10px] text-[#64748b] mt-1.5 font-medium">
                         <span>1 clip</span><span>20 clips</span>
                     </div>
                 </div>
 
                 {/* ─── Error ─── */}
                 {error && (
-                    <div style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444", fontSize: 13, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-                        <AlertCircle size={14} /> {error}
+                    <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-[#ef4444] text-xs font-semibold mb-5 flex items-center gap-2 animate-scale-in">
+                        <AlertCircle size={14} className="flex-shrink-0" />
+                        <span>{error}</span>
                     </div>
                 )}
 
                 {/* ─── Submit ─── */}
                 <button
-                    type="submit" className="btn-primary"
+                    type="submit" 
+                    className="btn-primary w-full justify-center py-3.5 text-sm font-semibold shadow-lg"
                     disabled={isSubmitting || !videoUrl.trim()}
-                    style={{ width: "100%", justifyContent: "center", padding: "14px 24px", fontSize: 15 }}
                 >
                     {isSubmitting ? (
-                        <><Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> Processing...</>
+                        <><Loader2 size={18} className="animate-spin" /> Processing...</>
                     ) : (
                         <><Sparkles size={18} /> Start Processing <ArrowRight size={18} /></>
                     )}
                 </button>
 
                 {/* ─── Info ─── */}
-                <div className="glass-card" style={{ padding: 18, marginTop: 20, display: "flex", gap: 10 }}>
-                    <Info size={18} style={{ color: "var(--accent-primary)", flexShrink: 0, marginTop: 2 }} />
+                <div className="glass-card p-4.5 mt-5 flex gap-3 bg-white/[0.01]">
+                    <Info size={18} className="text-[#8b5cf6] flex-shrink-0 mt-0.5" />
                     <div>
-                        <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>How long does it take?</div>
-                        <p style={{ color: "var(--text-muted)", fontSize: 12, lineHeight: 1.6 }}>
+                        <div className="text-xs font-bold text-slate-200 mb-1">How long does it take?</div>
+                        <p className="text-xs text-[#64748b] leading-relaxed">
                             Processing typically takes 5-15 minutes. The AI downloads the video, transcribes audio, detects viral moments, generates clips, and renders captions.
                         </p>
                     </div>

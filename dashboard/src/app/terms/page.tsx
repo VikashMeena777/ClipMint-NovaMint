@@ -93,7 +93,7 @@ export default function TermsPage() {
                     </li>
                     <li>
                         Paid subscriptions are billed monthly. Payments are processed
-                        through Razorpay.
+                        through Cashfree.
                     </li>
                     <li>
                         Prices are listed in Indian Rupees (₹) and are subject to

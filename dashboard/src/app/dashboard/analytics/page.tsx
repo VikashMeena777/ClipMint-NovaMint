@@ -50,9 +50,9 @@ function StyleDonut({ data }: { data: Record<string, number> }) {
     let cumulativeOffset = 0;
 
     return (
-        <div style={{ display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" }}>
-            <div style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+        <div className="flex items-center gap-6 flex-wrap">
+            <div className="relative inline-flex items-center justify-center">
+                <svg width={size} height={size} className="-rotate-90">
                     {entries.map(([style, count], i) => {
                         const pct = count / total;
                         const dash = pct * circumference;
@@ -67,21 +67,21 @@ function StyleDonut({ data }: { data: Record<string, number> }) {
                                 strokeDasharray={`${dash} ${circumference - dash}`}
                                 strokeDashoffset={-offset}
                                 strokeLinecap="butt"
-                                style={{ transition: "all 0.6s ease" }}
+                                className="transition-all duration-500"
                             />
                         );
                     })}
                 </svg>
-                <span style={{ position: "absolute", fontSize: 18, fontWeight: 800, color: "var(--text-primary)" }}>
+                <span className="absolute text-lg font-extrabold text-slate-100">
                     {total}
                 </span>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div className="flex flex-col gap-1.5 flex-1 min-w-[150px]">
                 {entries.slice(0, 6).map(([style, count], i) => (
-                    <div key={style} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}>
-                        <span style={{ width: 10, height: 10, borderRadius: 3, background: COLORS[i % COLORS.length], flexShrink: 0 }} />
-                        <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>{style}</span>
-                        <span style={{ color: "var(--text-muted)", marginLeft: "auto" }}>
+                    <div key={style} className="flex items-center gap-2 text-xs">
+                        <span className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                        <span className="text-slate-300 font-medium capitalize">{style}</span>
+                        <span className="text-[#64748b] ml-auto font-mono">
                             {count} ({Math.round((count / total) * 100)}%)
                         </span>
                     </div>
@@ -106,42 +106,34 @@ function ActivityHeatmap({ data }: { data: Record<string, number> }) {
 
     return (
         <div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(15, 1fr)", gap: 3, marginBottom: 8 }}>
+            <div 
+                className="grid gap-1 mb-2.5" 
+                style={{ gridTemplateColumns: "repeat(15, 1fr)" }}
+            >
                 {days.map((day) => {
                     const intensity = day.count / maxCount;
                     const bg = day.count === 0
-                        ? "var(--bg-secondary)"
-                        : `rgba(108, 92, 231, ${0.2 + intensity * 0.8})`;
+                        ? "rgba(255, 255, 255, 0.02)"
+                        : `rgba(139, 92, 246, ${0.25 + intensity * 0.75})`;
                     return (
                         <div
                             key={day.date}
                             title={`${day.date}: ${day.count} clip${day.count !== 1 ? "s" : ""}`}
+                            className="aspect-square rounded-sm cursor-pointer transition-all duration-200 min-w-0 hover:scale-110 hover:shadow-[0_0_8px_rgba(139,92,246,0.45)] hover:z-10"
                             style={{
-                                aspectRatio: "1", borderRadius: 4,
-                                background: bg, cursor: "pointer",
-                                transition: "transform 0.2s, box-shadow 0.2s",
-                                minWidth: 0,
-                            }}
-                            onMouseEnter={(e) => {
-                                (e.target as HTMLElement).style.transform = "scale(1.2)";
-                                (e.target as HTMLElement).style.boxShadow = "0 0 8px rgba(108,92,231,0.4)";
-                            }}
-                            onMouseLeave={(e) => {
-                                (e.target as HTMLElement).style.transform = "scale(1)";
-                                (e.target as HTMLElement).style.boxShadow = "none";
+                                backgroundColor: bg,
                             }}
                         />
                     );
                 })}
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--text-muted)" }}>
+            <div className="flex justify-between text-[10px] text-[#64748b] mt-1.5 font-medium">
                 <span>30 days ago</span>
-                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <div className="flex items-center gap-1.5">
                     <span>Less</span>
                     {[0, 0.25, 0.5, 0.75, 1].map((v) => (
-                        <span key={v} style={{
-                            width: 10, height: 10, borderRadius: 2,
-                            background: v === 0 ? "var(--bg-secondary)" : `rgba(108, 92, 231, ${0.2 + v * 0.8})`,
+                        <span key={v} className="w-2.5 h-2.5 rounded-sm border border-white/[0.02]" style={{
+                            backgroundColor: v === 0 ? "rgba(255,255,255,0.02)" : `rgba(139, 92, 246, ${0.25 + v * 0.75})`,
                         }} />
                     ))}
                     <span>More</span>
@@ -246,33 +238,25 @@ export default function AnalyticsPage() {
         const maxCount = Math.max(...bars.map((b) => b.count), 1);
 
         return (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <div style={{
-                    height: 200, display: "flex", alignItems: "flex-end",
-                    gap: days > 30 ? 2 : 4, padding: "0 4px",
-                }}>
+            <div className="flex flex-col gap-2">
+                <div className={`h-48 flex items-end px-1 ${days > 30 ? "gap-0.5" : "gap-1"}`}>
                     {bars.map((bar, i) => {
                         const height = bar.count === 0 ? 3 : Math.max(8, (bar.count / maxCount) * 100);
                         return (
                             <div
                                 key={bar.date}
                                 title={`${bar.label}: ${bar.count} clip${bar.count !== 1 ? "s" : ""}`}
+                                className="flex-1 rounded-t cursor-pointer transition-all duration-500 hover:opacity-100 min-w-[2px]"
                                 style={{
-                                    flex: 1, height: `${height}%`,
-                                    background: bar.count > 0 ? "var(--gradient-hero)" : "var(--bg-secondary)",
-                                    borderRadius: "4px 4px 0 0",
-                                    minWidth: 2,
-                                    transition: "height 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                                    cursor: "pointer",
+                                    height: `${height}%`,
+                                    background: bar.count > 0 ? "var(--gradient-hero)" : "rgba(255, 255, 255, 0.02)",
                                     opacity: bar.count > 0 ? 0.7 + (bar.count / maxCount) * 0.3 : 0.3,
                                 }}
-                                onMouseEnter={(e) => { (e.target as HTMLElement).style.opacity = "1"; }}
-                                onMouseLeave={(e) => { (e.target as HTMLElement).style.opacity = bar.count > 0 ? String(0.7 + (bar.count / maxCount) * 0.3) : "0.3"; }}
                             />
                         );
                     })}
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--text-muted)" }}>
+                <div className="flex justify-between text-[10px] text-[#64748b] mt-1.5 font-medium">
                     <span>{bars[0]?.label}</span>
                     <span>{bars[Math.floor(bars.length / 2)]?.label}</span>
                     <span>{bars[bars.length - 1]?.label}</span>
@@ -284,31 +268,30 @@ export default function AnalyticsPage() {
     const s = stats;
 
     const statCards = s ? [
-        { label: "Total Videos", value: s.totalVideos, icon: Film, color: "var(--accent-primary)", bg: "rgba(108,92,231,0.12)" },
-        { label: "Clips Generated", value: s.totalClips, icon: Play, color: "var(--accent-green)", bg: "rgba(0,230,118,0.12)" },
-        { label: "Avg Viral Score", value: s.avgViralScore > 0 ? s.avgViralScore : "—", icon: TrendingUp, color: "var(--accent-orange)", bg: "rgba(255,145,0,0.12)" },
-        { label: "Top Score", value: s.topClips.length > 0 ? (s.topClips[0].viral_score ?? "—") : "—", icon: Star, color: "var(--accent-cyan)", bg: "rgba(0,229,255,0.12)" },
+        { label: "Total Videos", value: s.totalVideos, icon: Film, color: "var(--accent-primary)", bg: "rgba(139,92,246,0.12)" },
+        { label: "Clips Generated", value: s.totalClips, icon: Play, color: "var(--accent-green)", bg: "rgba(16,185,129,0.12)" },
+        { label: "Avg Viral Score", value: s.avgViralScore > 0 ? s.avgViralScore : "—", icon: TrendingUp, color: "var(--accent-orange)", bg: "rgba(245,158,11,0.12)" },
+        { label: "Top Score", value: s.topClips.length > 0 ? (s.topClips[0].viral_score ?? "—") : "—", icon: Star, color: "var(--accent-cyan)", bg: "rgba(6,182,212,0.12)" },
     ] : [];
 
     return (
         <div>
             {/* ─── Header + Time Range ─── */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                 <div>
-                    <h1 style={{ fontSize: "clamp(22px, 3vw, 28px)", fontWeight: 800, marginBottom: 4 }}>
+                    <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-100 mb-1">
                         Analytics
                     </h1>
-                    <p style={{ color: "var(--text-muted)", fontSize: 14 }}>
+                    <p className="text-sm text-[#64748b]">
                         Track your content performance and usage
                     </p>
                 </div>
-                <div className="tab-nav" style={{ marginBottom: 0 }}>
+                <div className="tab-nav mb-0">
                     {(["7d", "30d", "90d", "all"] as TimeRange[]).map((range) => (
                         <button
                             key={range}
-                            className={`tab-item ${timeRange === range ? "active" : ""}`}
+                            className={`tab-item text-xs px-3.5 py-1.5 ${timeRange === range ? "active" : ""}`}
                             onClick={() => setTimeRange(range)}
-                            style={{ padding: "6px 14px", fontSize: 12 }}
                         >
                             {range === "all" ? "All" : range}
                         </button>
@@ -318,42 +301,42 @@ export default function AnalyticsPage() {
 
             {loading ? (
                 <div>
-                    <div className="dash-grid-4" style={{ marginBottom: 24 }}>
-                        {[1, 2, 3, 4].map((i) => <div key={i} className="skeleton" style={{ height: 100, borderRadius: 16 }} />)}
+                    <div className="dash-grid-4 mb-6">
+                        {[1, 2, 3, 4].map((i) => <div key={i} className="skeleton h-24 rounded-2xl" />)}
                     </div>
-                    <div className="skeleton" style={{ height: 260, borderRadius: 16, marginBottom: 24 }} />
+                    <div className="skeleton h-64 rounded-2xl mb-6" />
                     <div className="dash-grid-2">
-                        <div className="skeleton" style={{ height: 240, borderRadius: 16 }} />
-                        <div className="skeleton" style={{ height: 240, borderRadius: 16 }} />
+                        <div className="skeleton h-60 rounded-2xl" />
+                        <div className="skeleton h-60 rounded-2xl" />
                     </div>
                 </div>
             ) : (
                 <>
                     {/* ─── Stat Cards ─── */}
-                    <div className="dash-grid-4" style={{ marginBottom: 24 }}>
+                    <div className="dash-grid-4 mb-6">
                         {statCards.map((stat) => (
                             <div key={stat.label} className="stat-card">
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                                    <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 500 }}>{stat.label}</span>
-                                    <div className="stat-icon-bg" style={{ background: stat.bg }}>
+                                <div className="flex justify-between items-center mb-3">
+                                    <span className="text-xs text-[#64748b] font-semibold uppercase tracking-wider">{stat.label}</span>
+                                    <div className="stat-icon-bg border border-white/5" style={{ backgroundColor: stat.bg }}>
                                         <stat.icon size={18} style={{ color: stat.color }} />
                                     </div>
                                 </div>
-                                <div style={{ fontSize: 28, fontWeight: 800 }}>{stat.value}</div>
+                                <div className="text-3xl font-bold tracking-tight text-slate-100">{stat.value}</div>
                             </div>
                         ))}
                     </div>
 
                     {/* ─── Activity Chart ─── */}
-                    <div className="glass-card" style={{ padding: 28, marginBottom: 24 }}>
-                        <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
-                            <BarChart3 size={18} style={{ color: "var(--accent-primary)" }} />
+                    <div className="glass-card p-6 md:p-8 mb-6">
+                        <h3 className="text-base font-bold text-slate-200 mb-5 flex items-center gap-2.5">
+                            <BarChart3 size={18} className="text-[#8b5cf6]" />
                             Clips Activity
                         </h3>
                         {s && s.totalClips === 0 ? (
-                            <div style={{ textAlign: "center", padding: "40px 0", color: "var(--text-muted)" }}>
-                                <BarChart3 size={36} style={{ marginBottom: 12, opacity: 0.4 }} />
-                                <p style={{ fontSize: 14 }}>No data yet. Submit your first video to see analytics.</p>
+                            <div className="text-center py-10 text-[#64748b]">
+                                <BarChart3 size={36} className="mx-auto mb-3 opacity-40" />
+                                <p className="text-sm">No data yet. Submit your first video to see analytics.</p>
                             </div>
                         ) : (
                             renderChart()
@@ -361,15 +344,15 @@ export default function AnalyticsPage() {
                     </div>
 
                     {/* ─── Usage Breakdown + Heatmap ─── */}
-                    <div className="dash-grid-2" style={{ marginBottom: 24 }}>
+                    <div className="dash-grid-2 mb-6">
                         {/* Caption Style Distribution */}
-                        <div className="glass-card" style={{ padding: 28 }}>
-                            <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
-                                <Hash size={18} style={{ color: "var(--accent-primary)" }} />
+                        <div className="glass-card p-6 md:p-8">
+                            <h3 className="text-base font-bold text-slate-200 mb-5 flex items-center gap-2.5">
+                                <Hash size={18} className="text-[#8b5cf6]" />
                                 Style Distribution
                             </h3>
                             {s && Object.keys(s.clipsByStyle).length === 0 ? (
-                                <div style={{ textAlign: "center", padding: "24px 0", color: "var(--text-muted)", fontSize: 13 }}>
+                                <div className="text-center py-6 text-[#64748b] text-xs">
                                     No data yet
                                 </div>
                             ) : (
@@ -378,9 +361,9 @@ export default function AnalyticsPage() {
                         </div>
 
                         {/* 30-Day Heatmap */}
-                        <div className="glass-card" style={{ padding: 28 }}>
-                            <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
-                                <Calendar size={18} style={{ color: "var(--accent-primary)" }} />
+                        <div className="glass-card p-6 md:p-8">
+                            <h3 className="text-base font-bold text-slate-200 mb-5 flex items-center gap-2.5">
+                                <Calendar size={18} className="text-[#8b5cf6]" />
                                 Activity Calendar
                             </h3>
                             {s && <ActivityHeatmap data={s.heatmap} />}
@@ -388,87 +371,71 @@ export default function AnalyticsPage() {
                     </div>
 
                     {/* ─── Top Viral Clips Leaderboard ─── */}
-                    <div className="glass-card" style={{ padding: 28 }}>
-                        <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
-                            <Sparkles size={18} style={{ color: "var(--accent-primary)" }} />
+                    <div className="glass-card p-6 md:p-8">
+                        <h3 className="text-base font-bold text-slate-200 mb-5 flex items-center gap-2.5">
+                            <Sparkles size={18} className="text-[#8b5cf6]" />
                             Top Performing Clips
                         </h3>
                         {s && s.topClips.length === 0 ? (
-                            <div style={{ textAlign: "center", padding: "24px 0", color: "var(--text-muted)" }}>
-                                <p style={{ fontSize: 14 }}>No clips yet. Your top performers will appear here.</p>
+                            <div className="text-center py-6 text-[#64748b]">
+                                <p className="text-sm">No clips yet. Your top performers will appear here.</p>
                             </div>
                         ) : (
-                            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                            <div className="flex flex-col gap-2.5">
                                 {s?.topClips.map((clip, i) => (
                                     <div
                                         key={clip.id}
-                                        className="animate-fade-in-up"
-                                        style={{
-                                            display: "flex", alignItems: "center", gap: 14,
-                                            padding: "14px 18px", borderRadius: 12,
-                                            background: "var(--bg-secondary)",
-                                            border: "1px solid var(--border-subtle)",
-                                            transition: "all 0.2s ease",
-                                            animationDelay: `${i * 0.06}s`,
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            (e.currentTarget as HTMLElement).style.borderColor = "var(--accent-primary)";
-                                            (e.currentTarget as HTMLElement).style.transform = "translateX(4px)";
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            (e.currentTarget as HTMLElement).style.borderColor = "var(--border-subtle)";
-                                            (e.currentTarget as HTMLElement).style.transform = "translateX(0)";
-                                        }}
+                                        className="flex items-center gap-3.5 px-4.5 py-3.5 rounded-xl bg-[#08080c] border border-white/5 transition-all duration-300 hover:border-[#8b5cf6]/35 hover:translate-x-1 animate-fade-in-up"
+                                        style={{ animationDelay: `${i * 0.06}s` }}
                                     >
                                         {/* Rank */}
-                                        <div style={{
-                                            width: 32, height: 32, borderRadius: 8,
-                                            background: i === 0 ? "rgba(255,215,0,0.15)" : i === 1 ? "rgba(192,192,192,0.12)" : i === 2 ? "rgba(205,127,50,0.12)" : "var(--bg-card)",
-                                            display: "flex", alignItems: "center", justifyContent: "center",
-                                            fontSize: 13, fontWeight: 800,
-                                            color: i === 0 ? "#FFD700" : i === 1 ? "#C0C0C0" : i === 2 ? "#CD7F32" : "var(--text-muted)",
-                                            flexShrink: 0,
-                                        }}>
+                                        <div 
+                                            className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0"
+                                            style={{
+                                                background: i === 0 ? "rgba(255,215,0,0.15)" : i === 1 ? "rgba(192,192,192,0.12)" : i === 2 ? "rgba(205,127,50,0.12)" : "#0d0c12",
+                                                color: i === 0 ? "#FFD700" : i === 1 ? "#C0C0C0" : i === 2 ? "#CD7F32" : "#64748b",
+                                            }}
+                                        >
                                             #{i + 1}
                                         </div>
 
                                         {/* Thumbnail */}
-                                        <div style={{
-                                            width: 44, height: 44, borderRadius: 8, flexShrink: 0, overflow: "hidden",
-                                            background: "var(--bg-card)", display: "flex", alignItems: "center", justifyContent: "center",
-                                        }}>
+                                        <div className="w-11 h-11 rounded-lg flex-shrink-0 overflow-hidden bg-[#0d0c12] border border-white/5 flex items-center justify-center">
                                             {clip.thumbnail_url ? (
-                                                <img src={clip.thumbnail_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                                <img src={clip.thumbnail_url} alt="" className="w-full h-full object-cover" />
                                             ) : (
-                                                <Film size={18} style={{ color: "var(--text-muted)", opacity: 0.4 }} />
+                                                <Film size={18} className="text-[#64748b]/40" />
                                             )}
                                         </div>
 
                                         {/* Info */}
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-sm font-semibold text-slate-200 mb-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
                                                 {clip.title || `Clip ${clip.clip_index + 1}`}
                                             </div>
-                                            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--text-muted)" }}>
+                                            <div className="flex items-center gap-2 text-xs text-[#64748b]">
                                                 {clip.duration_seconds && <span>{Math.round(clip.duration_seconds)}s</span>}
                                             </div>
                                         </div>
 
                                         {/* Score bar */}
                                         {clip.viral_score != null && (
-                                            <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                                                <div style={{ width: 80, height: 6, borderRadius: 3, background: "var(--bg-primary)", overflow: "hidden" }}>
-                                                    <div style={{
-                                                        height: "100%", borderRadius: 3,
-                                                        width: `${clip.viral_score}%`,
-                                                        background: clip.viral_score >= 80 ? "var(--accent-green)" : clip.viral_score >= 50 ? "var(--accent-orange)" : "var(--accent-red)",
-                                                        transition: "width 0.6s ease",
-                                                    }} />
+                                            <div className="flex items-center gap-2.5 flex-shrink-0">
+                                                <div className="w-20 h-1.5 rounded-full bg-[#030305] overflow-hidden">
+                                                    <div 
+                                                        className="h-full rounded-full transition-[width] duration-700 ease-out"
+                                                        style={{
+                                                            width: `${clip.viral_score}%`,
+                                                            backgroundColor: clip.viral_score >= 80 ? "#10b981" : clip.viral_score >= 50 ? "#f59e0b" : "#ef4444",
+                                                        }} 
+                                                    />
                                                 </div>
-                                                <span style={{
-                                                    fontSize: 14, fontWeight: 800, minWidth: 32, textAlign: "right",
-                                                    color: clip.viral_score >= 80 ? "var(--accent-green)" : clip.viral_score >= 50 ? "var(--accent-orange)" : "var(--accent-red)",
-                                                }}>
+                                                <span 
+                                                    className="text-xs font-black min-w-8 text-right"
+                                                    style={{
+                                                        color: clip.viral_score >= 80 ? "#10b981" : clip.viral_score >= 50 ? "#f59e0b" : "#ef4444",
+                                                    }}
+                                                >
                                                     {clip.viral_score}
                                                 </span>
                                             </div>

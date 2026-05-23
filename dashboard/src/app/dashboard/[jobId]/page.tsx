@@ -120,10 +120,10 @@ export default function JobDetailPage({ params }: { params: Promise<{ jobId: str
     if (loading) {
         return (
             <div>
-                <div className="skeleton" style={{ height: 28, width: 180, marginBottom: 24, borderRadius: 8 }} />
-                <div className="skeleton" style={{ height: 80, marginBottom: 20, borderRadius: 14 }} />
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
-                    {[1, 2, 3].map((i) => <div key={i} className="skeleton" style={{ height: 260, borderRadius: 16 }} />)}
+                <div className="skeleton h-7 w-44 mb-6 rounded-lg" />
+                <div className="skeleton h-20 mb-5 rounded-2xl" />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[1, 2, 3].map((i) => <div key={i} className="skeleton h-64 rounded-2xl" />)}
                 </div>
             </div>
         );
@@ -132,13 +132,13 @@ export default function JobDetailPage({ params }: { params: Promise<{ jobId: str
     if (!job) {
         return (
             <div>
-                <Link href="/dashboard" style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--text-secondary)", textDecoration: "none", fontSize: 14, marginBottom: 20 }}>
+                <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-slate-300 hover:text-white no-underline text-sm mb-5 transition-colors">
                     <ArrowLeft size={16} /> Back to Jobs
                 </Link>
-                <div className="glass-card" style={{ padding: 40, textAlign: "center" }}>
-                    <Film size={40} style={{ color: "var(--text-muted)", marginBottom: 16 }} />
-                    <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Job Not Found</h2>
-                    <p style={{ color: "var(--text-muted)", fontSize: 14 }}>This job doesn&apos;t exist or you don&apos;t have access.</p>
+                <div className="glass-card p-10 text-center max-w-md mx-auto">
+                    <Film size={40} className="text-[#64748b] mb-4 mx-auto" />
+                    <h2 className="text-lg font-bold text-slate-200 mb-2">Job Not Found</h2>
+                    <p className="text-sm text-[#64748b]">This job doesn&apos;t exist or you don&apos;t have access.</p>
                 </div>
             </div>
         );
@@ -150,55 +150,66 @@ export default function JobDetailPage({ params }: { params: Promise<{ jobId: str
     return (
         <div>
             {/* ─── Header ─── */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, flexWrap: "wrap", gap: 16 }}>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
-                    <Link href="/dashboard" style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--text-muted)", textDecoration: "none", fontSize: 13, marginBottom: 12 }}>
+                    <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-[#64748b] hover:text-slate-300 no-underline text-xs mb-3 transition-colors">
                         <ArrowLeft size={14} /> Back to Jobs
                     </Link>
-                    <h1 style={{ fontSize: "clamp(20px, 3vw, 26px)", fontWeight: 800, marginBottom: 8 }}>
+                    <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-100 mb-2">
                         Job {jobId.slice(0, 8)}
                     </h1>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", fontSize: 13, color: "var(--text-muted)" }}>
-                        <span className="status-badge" style={{ background: `${statusInfo.color}15`, color: statusInfo.color, border: `1px solid ${statusInfo.color}30` }}>
+                    <div className="flex items-center gap-3 flex-wrap text-xs text-[#64748b]">
+                        <span 
+                            className="plan-badge font-bold px-2.5 py-1 rounded-md border text-[10px] tracking-wider uppercase flex items-center gap-1"
+                            style={{ 
+                                backgroundColor: `${statusInfo.color}15`, 
+                                color: statusInfo.color, 
+                                borderColor: `${statusInfo.color}30` 
+                            }}
+                        >
                             {statusInfo.emoji} {statusInfo.label}
                         </span>
-                        <span style={{ display: "flex", alignItems: "center", gap: 4 }}><Clock size={13} /> {new Date(job.created_at).toLocaleString()}</span>
+                        <span className="flex items-center gap-1"><Clock size={13} /> {new Date(job.created_at).toLocaleString()}</span>
                         <span>Style: {job.caption_style}</span>
                     </div>
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                    <button className="btn-secondary" onClick={handleDownloadAll} disabled={downloadingAll || clips.length === 0} style={{ padding: "8px 16px", fontSize: 13 }}>
-                        {downloadingAll ? <><Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> Downloading...</> : <><Download size={14} /> Download All ({clips.length})</>}
+                <div className="flex gap-2 w-full sm:w-auto">
+                    <button 
+                        className="btn-secondary w-full sm:w-auto px-4 py-2.5 text-xs font-semibold" 
+                        onClick={handleDownloadAll} 
+                        disabled={downloadingAll || clips.length === 0}
+                    >
+                        {downloadingAll ? <><Loader2 size={14} className="animate-spin" /> Downloading...</> : <><Download size={14} /> Download All ({clips.length})</>}
                     </button>
                 </div>
             </div>
 
             {/* ─── Job Overview Card ─── */}
-            <div className="glass-card" style={{ padding: 20, marginBottom: 24 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 16 }}>
+            <div className="glass-card p-5 mb-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                        <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600, letterSpacing: 0.5, marginBottom: 4 }}>SOURCE</div>
-                        <div style={{ fontSize: 13, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{job.video_url || job.video_filename || "—"}</div>
+                        <div className="text-[10px] text-[#64748b] font-bold uppercase tracking-wider mb-1">SOURCE</div>
+                        <div className="text-xs text-slate-300 font-semibold whitespace-nowrap overflow-hidden text-ellipsis">{job.video_url || job.video_filename || "—"}</div>
                     </div>
                     <div>
-                        <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600, letterSpacing: 0.5, marginBottom: 4 }}>CAPTION STYLE</div>
-                        <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>{job.caption_style}</div>
+                        <div className="text-[10px] text-[#64748b] font-bold uppercase tracking-wider mb-1">CAPTION STYLE</div>
+                        <div className="text-xs text-slate-300 font-semibold">{job.caption_style}</div>
                     </div>
                     <div>
-                        <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600, letterSpacing: 0.5, marginBottom: 4 }}>MAX CLIPS</div>
-                        <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>{job.max_clips}</div>
+                        <div className="text-[10px] text-[#64748b] font-bold uppercase tracking-wider mb-1">MAX CLIPS</div>
+                        <div className="text-xs text-slate-300 font-semibold">{job.max_clips}</div>
                     </div>
                     <div>
-                        <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600, letterSpacing: 0.5, marginBottom: 4 }}>CLIPS GENERATED</div>
-                        <div style={{ fontSize: 13, color: "var(--accent-green)", fontWeight: 700 }}>{clips.length}</div>
+                        <div className="text-[10px] text-[#64748b] font-bold uppercase tracking-wider mb-1">CLIPS GENERATED</div>
+                        <div className="text-xs text-[#10b981] font-bold">{clips.length}</div>
                     </div>
                 </div>
             </div>
 
             {/* ─── Step Progress Indicator ─── */}
             {(isProcessing || job.status === "done") && (
-                <div className="glass-card" style={{ padding: 24, marginBottom: 24 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-muted)", marginBottom: 16 }}>PROCESSING PIPELINE</div>
+                <div className="glass-card p-6 mb-6">
+                    <div className="text-xs font-bold text-[#64748b] uppercase tracking-wider mb-4">PROCESSING PIPELINE</div>
                     <div className="step-progress">
                         {PIPELINE_STEPS.map((step, i) => {
                             const state = job.status === "done" ? "completed" : getStepState(step.key, job.status);
@@ -208,7 +219,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ jobId: str
                                     <div className={`step-circle ${state}`}>
                                         {state === "completed" ? <Check size={14} /> : i + 1}
                                     </div>
-                                    <span style={{ fontSize: 10, fontWeight: 500, color: state === "active" ? "var(--accent-primary)" : state === "completed" ? "var(--accent-green)" : "var(--text-muted)" }}>
+                                    <span className={`text-[10px] font-semibold mt-1.5 ${state === "active" ? "text-[#8b5cf6]" : state === "completed" ? "text-[#10b981]" : "text-[#64748b]"}`}>
                                         {step.label}
                                     </span>
                                 </div>
@@ -220,16 +231,20 @@ export default function JobDetailPage({ params }: { params: Promise<{ jobId: str
 
             {/* ─── Error/Cancelled states ─── */}
             {job.status === "failed" && (
-                <div className="glass-card" style={{ padding: 20, marginBottom: 24, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.05)" }}>
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                        <AlertTriangle size={20} style={{ color: "#EF4444", flexShrink: 0, marginTop: 2 }} />
-                        <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 14, fontWeight: 700, color: "#EF4444", marginBottom: 6 }}>Processing failed</div>
-                            <div style={{ fontSize: 13, color: "var(--text-secondary)", background: "rgba(0,0,0,0.2)", padding: "10px 14px", borderRadius: 8, marginBottom: 12, lineHeight: 1.5 }}>
+                <div className="glass-card p-5 mb-6 border-red-500/20 bg-red-500/5">
+                    <div className="flex items-start gap-3">
+                        <AlertTriangle size={20} className="text-[#ef4444] flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                            <div className="text-sm font-bold text-[#ef4444] mb-1.5">Processing failed</div>
+                            <div className="text-xs text-slate-300 bg-black/30 border border-white/5 p-3 rounded-lg mb-3.5 leading-relaxed font-mono">
                                 {job.error_message || "Something went wrong. Please try again or contact support."}
                             </div>
-                            <button className="btn-primary" onClick={handleRetry} disabled={retrying} style={{ padding: "8px 16px", fontSize: 13 }}>
-                                {retrying ? <><Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> Retrying...</> : <><RefreshCw size={14} /> Retry</>}
+                            <button 
+                                className="btn-primary px-4 py-2 text-xs font-semibold flex items-center gap-1.5" 
+                                onClick={handleRetry} 
+                                disabled={retrying}
+                            >
+                                {retrying ? <><Loader2 size={14} className="animate-spin" /> Retrying...</> : <><RefreshCw size={14} /> Retry</>}
                             </button>
                         </div>
                     </div>
@@ -237,14 +252,18 @@ export default function JobDetailPage({ params }: { params: Promise<{ jobId: str
             )}
 
             {job.status === "cancelled" && (
-                <div className="glass-card" style={{ padding: 20, marginBottom: 24, border: "1px solid rgba(245,158,11,0.3)", background: "rgba(245,158,11,0.05)" }}>
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                        <AlertTriangle size={20} style={{ color: "#F59E0B", flexShrink: 0, marginTop: 2 }} />
-                        <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 14, fontWeight: 700, color: "#F59E0B", marginBottom: 6 }}>Processing cancelled</div>
-                            <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 12 }}>This job was cancelled. You can retry to reprocess your video.</div>
-                            <button className="btn-primary" onClick={handleRetry} disabled={retrying} style={{ padding: "8px 16px", fontSize: 13 }}>
-                                {retrying ? <><Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> Retrying...</> : <><RefreshCw size={14} /> Retry</>}
+                <div className="glass-card p-5 mb-6 border-amber-500/20 bg-amber-500/5">
+                    <div className="flex items-start gap-3">
+                        <AlertTriangle size={20} className="text-[#f59e0b] flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                            <div className="text-sm font-bold text-[#f59e0b] mb-1.5">Processing cancelled</div>
+                            <div className="text-xs text-slate-300 mb-3.5">This job was cancelled. You can retry to reprocess your video.</div>
+                            <button 
+                                className="btn-primary px-4 py-2 text-xs font-semibold flex items-center gap-1.5" 
+                                onClick={handleRetry} 
+                                disabled={retrying}
+                            >
+                                {retrying ? <><Loader2 size={14} className="animate-spin" /> Retrying...</> : <><RefreshCw size={14} /> Retry</>}
                             </button>
                         </div>
                     </div>
@@ -252,78 +271,106 @@ export default function JobDetailPage({ params }: { params: Promise<{ jobId: str
             )}
 
             {/* ─── Clips Gallery ─── */}
-            <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-                <Film size={18} style={{ color: "var(--accent-primary)" }} />
+            <h2 className="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
+                <Film size={18} className="text-[#8b5cf6]" />
                 {clips.length} Clip{clips.length !== 1 ? "s" : ""} Generated
             </h2>
 
             {clips.length === 0 ? (
-                <div className="glass-card" style={{ padding: 48, textAlign: "center" }}>
-                    <Film size={36} style={{ color: "var(--text-muted)", marginBottom: 12, opacity: 0.4 }} />
-                    <p style={{ color: "var(--text-muted)", fontSize: 14 }}>
+                <div className="glass-card p-12 text-center max-w-md mx-auto">
+                    <Film size={36} className="text-[#64748b] opacity-40 mb-3 mx-auto" />
+                    <p className="text-sm text-[#64748b]">
                         {job.status === "done" ? "No clips were generated for this job." : "Clips will appear here once processing is complete."}
                     </p>
                 </div>
             ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {clips.map((clip, i) => (
-                        <div key={clip.id} className="glass-card animate-fade-in-up" style={{ padding: 0, overflow: "hidden", animationDelay: `${i * 0.06}s` }}>
+                        <div 
+                            key={clip.id} 
+                            className="glass-card animate-fade-in-up !p-0 overflow-hidden hover:border-[#8b5cf6]/35 shadow-lg flex flex-col" 
+                            style={{ animationDelay: `${i * 0.06}s` }}
+                        >
                             {/* Preview area */}
-                            <div style={{ height: 170, background: "linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-hover) 100%)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+                            <div className="h-44 bg-gradient-to-br from-[#0d0c12] to-[#12101b] flex items-center justify-center relative overflow-hidden border-b border-white/5">
                                 {clip.thumbnail_url ? (
-                                    <img src={clip.thumbnail_url} alt={clip.title || `Clip ${clip.clip_index + 1}`} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+                                    <img 
+                                        src={clip.thumbnail_url} 
+                                        alt={clip.title || `Clip ${clip.clip_index + 1}`} 
+                                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 hover:scale-105" 
+                                    />
                                 ) : (
-                                    <Film size={36} style={{ color: "var(--text-muted)", opacity: 0.2 }} />
+                                    <Film size={36} className="text-[#64748b]/20" />
                                 )}
                                 {clip.viral_score != null && (
-                                    <div style={{ position: "absolute", top: 10, right: 10, display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 8, background: clip.viral_score >= 80 ? "rgba(0,230,118,0.2)" : "rgba(255,145,0,0.2)", color: clip.viral_score >= 80 ? "var(--accent-green)" : "var(--accent-orange)", fontSize: 13, fontWeight: 700, backdropFilter: "blur(8px)" }}>
+                                    <div 
+                                        className={`absolute top-2.5 right-2.5 flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold backdrop-blur-md border ${
+                                            clip.viral_score >= 80 
+                                                ? "bg-emerald-500/20 text-[#10b981] border-emerald-500/20" 
+                                                : "bg-amber-500/20 text-[#f59e0b] border-amber-500/20"
+                                        }`}
+                                    >
                                         <Star size={13} /> {clip.viral_score}
                                     </div>
                                 )}
                                 {clip.duration_seconds != null && (
-                                    <div style={{ position: "absolute", bottom: 10, right: 10, padding: "3px 8px", borderRadius: 6, background: "rgba(0,0,0,0.7)", fontSize: 11, fontWeight: 600 }}>
+                                    <div className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded bg-black/70 text-[10px] font-bold text-slate-200 backdrop-blur-sm">
                                         {Math.round(clip.duration_seconds)}s
                                     </div>
                                 )}
                             </div>
 
                             {/* Info */}
-                            <div style={{ padding: "14px 18px" }}>
-                                <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 5, lineHeight: 1.3 }}>
-                                    {clip.title || `Clip ${clip.clip_index + 1}`}
-                                </h3>
-                                {clip.hook_caption && (
-                                    <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 10, lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                                        &ldquo;{clip.hook_caption}&rdquo;
-                                    </p>
-                                )}
-                                {clip.hashtags && clip.hashtags.length > 0 && (
-                                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 12 }}>
-                                        {clip.hashtags.slice(0, 4).map((tag) => (
-                                            <span key={tag} style={{ fontSize: 10, padding: "2px 7px", borderRadius: 5, background: "rgba(108,92,231,0.1)", color: "var(--accent-secondary)", fontWeight: 500 }}>{tag}</span>
-                                        ))}
-                                    </div>
-                                )}
+                            <div className="p-4 flex-1 flex flex-col justify-between">
+                                <div>
+                                    <h3 className="text-sm font-bold text-slate-100 mb-1 leading-snug">
+                                        {clip.title || `Clip ${clip.clip_index + 1}`}
+                                    </h3>
+                                    {clip.hook_caption && (
+                                        <p className="text-xs text-[#64748b] mb-3 leading-relaxed line-clamp-2 italic">
+                                            &ldquo;{clip.hook_caption}&rdquo;
+                                        </p>
+                                    )}
+                                    {clip.hashtags && clip.hashtags.length > 0 && (
+                                        <div className="flex flex-wrap gap-1.5 mb-3.5">
+                                            {clip.hashtags.slice(0, 4).map((tag) => (
+                                                <span key={tag} className="text-[9px] px-2 py-0.5 rounded bg-[#8b5cf6]/10 text-[#c084fc] font-semibold border border-[#8b5cf6]/10">{tag}</span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
 
                                 {/* Actions */}
-                                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                                    <button className="btn-primary" style={{ flex: 1, justifyContent: "center", padding: "7px 10px", fontSize: 12 }} onClick={() => clip.drive_url && triggerDownload(clip.drive_url)}>
+                                <div className="flex gap-1.5 mt-auto">
+                                    <button 
+                                        className="btn-primary flex-1 justify-center py-2 px-2.5 text-xs font-semibold shadow-md" 
+                                        onClick={() => clip.drive_url && triggerDownload(clip.drive_url)}
+                                    >
                                         <Download size={13} /> Video
                                     </button>
                                     {clip.thumbnail_url && (
-                                        <button className="btn-secondary" style={{ padding: "7px 10px", fontSize: 12 }} onClick={() => triggerDownload(clip.thumbnail_url!)} title="Download Thumbnail">
+                                        <button 
+                                            className="btn-secondary py-2 px-2.5 text-xs font-semibold" 
+                                            onClick={() => triggerDownload(clip.thumbnail_url!)} 
+                                            title="Download Thumbnail"
+                                        >
                                             <Image size={13} />
                                         </button>
                                     )}
                                     <button
-                                        className="btn-secondary"
-                                        style={{ padding: "7px 10px", fontSize: 12 }}
+                                        className="btn-secondary py-2 px-2.5 text-xs font-semibold"
                                         onClick={() => handleCopy(clip.id, `${clip.title}\n\n${clip.hook_caption}\n\n${clip.hashtags?.join(" ")}`)}
                                         title={copiedId === clip.id ? "Copied!" : "Copy caption & hashtags"}
                                     >
-                                        {copiedId === clip.id ? <Check size={13} style={{ color: "var(--accent-green)" }} /> : <Copy size={13} />}
+                                        {copiedId === clip.id ? <Check size={13} className="text-[#10b981]" /> : <Copy size={13} />}
                                     </button>
-                                    <a href={clip.drive_url || "#"} target="_blank" rel="noopener noreferrer" className="btn-secondary" style={{ padding: "7px 10px", fontSize: 12 }} title="Open in Drive">
+                                    <a 
+                                        href={clip.drive_url || "#"} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer" 
+                                        className="btn-secondary py-2 px-2.5 text-xs font-semibold" 
+                                        title="Open in Drive"
+                                    >
                                         <ExternalLink size={13} />
                                     </a>
                                 </div>

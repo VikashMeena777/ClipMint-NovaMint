@@ -43,7 +43,7 @@ export default function PrivacyPolicyPage() {
                     </li>
                     <li>
                         <strong>Payment Information:</strong> When you subscribe to a paid
-                        plan, payment details are processed securely by Razorpay. We do
+                        plan, payment details are processed securely by Cashfree. We do
                         not store your card details.
                     </li>
                 </ul>

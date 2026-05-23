@@ -103,18 +103,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const planKey = profile?.plan ?? "free";
 
     return (
-        <div style={{ display: "flex", minHeight: "100vh" }}>
+        <div className="flex min-h-screen bg-[#030305] text-[#f8fafc]">
             {/* ═══ Desktop Sidebar ═══ */}
             <aside className={`dash-sidebar ${collapsed ? "collapsed" : ""}`}>
                 {/* Logo + Collapse toggle */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 8px", marginBottom: 24 }}>
-                    <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: "inherit" }}>
-                        <img src="/clipmint-logo.jpg" alt="ClipMint" style={{ height: 28, width: 28, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} />
-                        {!collapsed && <span className="gradient-text sidebar-label" style={{ fontSize: 18, fontWeight: 800, letterSpacing: -0.5 }}>ClipMint</span>}
+                <div className="flex items-center justify-between px-2 mb-6">
+                    <Link href="/" className="flex items-center gap-2.5 no-underline text-inherit">
+                        <img src="/clipmint-logo.jpg" alt="ClipMint" className="h-7 w-7 rounded-md object-cover flex-shrink-0 border border-white/10" />
+                        {!collapsed && <span className="gradient-text sidebar-label text-lg font-extrabold tracking-tight bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4]">ClipMint</span>}
                     </Link>
                     <button
                         onClick={() => setCollapsed(!collapsed)}
-                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 4, borderRadius: 6 }}
+                        className="bg-transparent border-none cursor-pointer text-[#64748b] hover:text-[#f8fafc] p-1 rounded-md transition-colors flex items-center justify-center"
                         title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
                     >
                         {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
@@ -123,21 +123,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                 {/* User info */}
                 {!collapsed && profile && (
-                    <div style={{ padding: "12px 12px", marginBottom: 16, borderRadius: 10, background: "var(--bg-card)" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            <div style={{
-                                width: 36, height: 36, borderRadius: "50%",
-                                background: "var(--gradient-hero)",
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                fontSize: 14, fontWeight: 700, color: "white", flexShrink: 0,
-                            }}>
+                    <div className="p-3 mb-4 rounded-xl bg-[#0d0c12] border border-white/5">
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4] flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
                                 {(profile.full_name || "U").charAt(0).toUpperCase()}
                             </div>
-                            <div style={{ overflow: "hidden" }}>
-                                <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            <div className="overflow-hidden">
+                                <div className="text-xs font-semibold whitespace-nowrap overflow-hidden text-ellipsis text-slate-200">
                                     {profile.full_name || "User"}
                                 </div>
-                                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                <div className="flex items-center gap-1.5 mt-0.5">
                                     <span className={`plan-badge ${planKey}`}>{planKey}</span>
                                 </div>
                             </div>
@@ -146,14 +141,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 )}
 
                 {/* Nav items */}
-                <nav style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
+                <nav className="flex flex-col gap-0.5 flex-1">
                     {NAV_ITEMS.map((item) => {
                         const isActive = pathname === item.href;
                         const Icon = item.icon;
                         return (
                             <Link key={item.href} href={item.href} className={`sidebar-nav-item ${isActive ? "active" : ""}`}>
                                 <div className="sidebar-icon-bg">
-                                    <Icon size={18} style={{ color: isActive ? "var(--accent-primary)" : "var(--text-muted)" }} />
+                                    <Icon size={18} className={isActive ? "text-[#8b5cf6]" : "text-[#64748b]"} />
                                 </div>
                                 {!collapsed && <span className="sidebar-label">{item.label}</span>}
                             </Link>
@@ -162,26 +157,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </nav>
 
                 {/* Usage meter — Donut */}
-                <div className="sidebar-usage-card" style={{
-                    padding: 16, borderRadius: 12,
-                    background: "var(--bg-card)", border: "1px solid var(--border-subtle)",
-                    marginBottom: 8,
-                }}>
+                <div className="sidebar-usage-card p-4 rounded-xl bg-[#0d0c12] border border-white/5 mb-2">
                     {collapsed ? (
-                        <div style={{ display: "flex", justifyContent: "center" }}>
+                        <div className="flex justify-center">
                             <DonutMeter percent={usagePercent} size={40} strokeWidth={4} />
                         </div>
                     ) : (
                         <div className="sidebar-label">
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                                <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 600, letterSpacing: 0.5 }}>
+                            <div className="flex items-center justify-between mb-2.5">
+                                <span className="text-xs text-[#64748b] font-semibold tracking-wider">
                                     USAGE
                                 </span>
                                 <DonutMeter percent={usagePercent} size={40} strokeWidth={4} />
                             </div>
-                            <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                            <div className="text-xs text-slate-400 font-medium">
                                 {loading ? (
-                                    <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />
+                                    <Loader2 size={14} className="animate-spin text-[#8b5cf6]" />
                                 ) : (
                                     `${profile?.clips_used ?? 0} / ${planLimit.clips} clips`
                                 )}
@@ -192,23 +183,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                 {/* Upgrade CTA (only if free plan) */}
                 {!collapsed && planKey === "free" && (
-                    <Link href="/pricing" className="upgrade-card sidebar-label" style={{ textDecoration: "none", display: "block" }}>
-                        <Sparkles size={16} style={{ color: "var(--accent-primary)", margin: "0 auto 6px" }} />
-                        <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", marginBottom: 2 }}>Upgrade to Pro</div>
-                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Unlock unlimited clips</div>
+                    <Link href="/pricing" className="upgrade-card sidebar-label block no-underline">
+                        <Sparkles size={16} className="text-[#8b5cf6] mx-auto mb-1.5" />
+                        <div className="text-xs font-bold text-slate-200 mb-0.5">Upgrade to Pro</div>
+                        <div className="text-[10px] text-[#64748b]">Unlock unlimited clips</div>
                     </Link>
                 )}
 
                 {/* Sign out */}
                 <button
                     onClick={handleSignOut}
-                    style={{
-                        display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "flex-start",
-                        gap: 10, padding: "10px 14px", marginTop: 8,
-                        background: "none", border: "1px solid var(--border-subtle)",
-                        borderRadius: 10, cursor: "pointer", color: "var(--text-muted)",
-                        fontSize: 13, transition: "all 0.2s ease", width: "100%",
-                    }}
+                    className={`flex items-center ${collapsed ? "justify-center" : "justify-start"} gap-2.5 px-3.5 py-2.5 mt-2 bg-transparent border border-white/5 hover:border-red-500/20 hover:bg-red-500/5 text-[#94a3b8] hover:text-red-400 rounded-xl cursor-pointer text-xs transition-all w-full font-medium`}
                 >
                     <LogOut size={16} />
                     {!collapsed && <span className="sidebar-label">Sign Out</span>}
@@ -230,9 +215,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </nav>
 
             {/* ═══ Main content ═══ */}
-            <main className="dash-main" style={{ flex: 1, marginLeft: collapsed ? 72 : 260, padding: "28px 36px", minHeight: "100vh", transition: "margin-left 0.3s ease" }}>
+            <main className={`dash-main flex-1 p-6 md:p-9 min-h-screen transition-[margin-left] duration-300 ${collapsed ? "ml-20" : "ml-[270px]"}`}>
                 {/* Breadcrumb */}
-                <div className="breadcrumb" style={{ marginBottom: 20 }}>
+                <div className="breadcrumb mb-5">
                     <Link href="/dashboard">Dashboard</Link>
                     {pathname !== "/dashboard" && (
                         <>

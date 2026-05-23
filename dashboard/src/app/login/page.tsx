@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, ArrowRight, Loader2, ArrowLeft } from "lucide-react";
+import { Mail, Lock, ArrowRight, Loader2, ArrowLeft, Sparkles } from "lucide-react";
+import Link from "next/link";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -94,54 +95,28 @@ export default function LoginPage() {
     };
 
     return (
-        <div
-            style={{
-                minHeight: "100vh",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: 20,
-            }}
-        >
-            <div
-                className="glass-card"
-                style={{
-                    width: "100%",
-                    maxWidth: 440,
-                    padding: "48px 40px",
-                }}
-            >
+        <div className="min-h-screen bg-[#030305] text-[#f8fafc] flex flex-col justify-center items-center p-6 relative">
+            {/* Ambient Background Glow */}
+            <div className="absolute w-[350px] h-[350px] rounded-full bg-[#8b5cf6]/10 blur-[100px] pointer-events-none -top-12" />
+            <div className="absolute w-[350px] h-[350px] rounded-full bg-[#06b6d4]/5 blur-[120px] pointer-events-none -bottom-12" />
+
+            <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-sm text-slate-400 no-underline hover:text-slate-200 transition-colors">
+                <ArrowLeft size={16} />
+                <span>Back to Home</span>
+            </Link>
+
+            <div className="glass-card w-full max-w-md p-8 md:p-10 shadow-2xl relative z-10">
                 {/* Logo */}
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 10,
-                        marginBottom: 8,
-                    }}
-                >
-                    <img src="/clipmint-logo.jpg" alt="ClipMint" style={{ height: 40, width: 40, borderRadius: 8, objectFit: "cover" }} />
-                    <span
-                        className="gradient-text"
-                        style={{
-                            fontSize: 28,
-                            fontWeight: 800,
-                            letterSpacing: -0.5,
-                        }}
-                    >
+                <div className="flex items-center justify-center gap-2.5 mb-2">
+                    <div className="w-8 h-8 rounded-lg overflow-hidden border border-white/10 shadow-md">
+                        <img src="/clipmint-logo.jpg" alt="ClipMint" className="w-full h-full object-cover" />
+                    </div>
+                    <span className="gradient-text font-black text-2xl tracking-tight bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4]">
                         ClipMint
                     </span>
                 </div>
 
-                <p
-                    style={{
-                        textAlign: "center",
-                        color: "var(--text-muted)",
-                        fontSize: 14,
-                        marginBottom: 32,
-                    }}
-                >
+                <p className="text-center text-slate-400 text-xs sm:text-sm mb-8 font-medium">
                     {isForgotPassword
                         ? "Enter your email to reset your password"
                         : isSignUp
@@ -155,17 +130,9 @@ export default function LoginPage() {
                         <button
                             onClick={handleGoogleAuth}
                             disabled={loading}
-                            className="btn-secondary"
-                            style={{
-                                width: "100%",
-                                justifyContent: "center",
-                                padding: "12px 16px",
-                                fontSize: 15,
-                                marginBottom: 24,
-                                gap: 10,
-                            }}
+                            className="btn-secondary w-full py-3 text-sm font-semibold flex items-center justify-center gap-3.5 mb-6 hover:bg-white/5 transition-all"
                         >
-                            <svg width="18" height="18" viewBox="0 0 24 24">
+                            <svg width="18" height="18" viewBox="0 0 24 24" className="flex-shrink-0">
                                 <path
                                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
                                     fill="#4285F4"
@@ -183,174 +150,83 @@ export default function LoginPage() {
                                     fill="#EA4335"
                                 />
                             </svg>
-                            Continue with Google
+                            <span>Continue with Google</span>
                         </button>
 
                         {/* Divider */}
-                        <div
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 16,
-                                marginBottom: 24,
-                            }}
-                        >
-                            <div
-                                style={{
-                                    flex: 1,
-                                    height: 1,
-                                    background: "var(--border-subtle)",
-                                }}
-                            />
-                            <span
-                                style={{
-                                    color: "var(--text-muted)",
-                                    fontSize: 13,
-                                }}
-                            >
-                                or
-                            </span>
-                            <div
-                                style={{
-                                    flex: 1,
-                                    height: 1,
-                                    background: "var(--border-subtle)",
-                                }}
-                            />
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="flex-1 h-px bg-white/5" />
+                            <span className="text-slate-500 text-xs font-semibold uppercase tracking-wider">or</span>
+                            <div className="flex-1 h-px bg-white/5" />
                         </div>
                     </>
                 )}
 
                 {/* Email/Password Form */}
-                <form onSubmit={handleEmailAuth}>
-                    <div style={{ marginBottom: 16 }}>
-                        <label
-                            style={{
-                                display: "block",
-                                fontSize: 13,
-                                fontWeight: 500,
-                                color: "var(--text-secondary)",
-                                marginBottom: 6,
-                            }}
-                        >
+                <form onSubmit={handleEmailAuth} className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-semibold text-slate-400">
                             Email
                         </label>
-                        <div style={{ position: "relative" }}>
+                        <div className="relative">
                             <Mail
-                                size={16}
-                                style={{
-                                    position: "absolute",
-                                    left: 12,
-                                    top: "50%",
-                                    transform: "translateY(-50%)",
-                                    color: "var(--text-muted)",
-                                }}
+                                size={15}
+                                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
                             />
                             <input
-                                className="input"
+                                className="input-field pl-11"
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="you@example.com"
                                 required
-                                style={{ paddingLeft: 38 }}
                             />
                         </div>
                     </div>
 
                     {/* Password field — hide on forgot password */}
                     {!isForgotPassword && (
-                        <div style={{ marginBottom: 8 }}>
-                            <label
-                                style={{
-                                    display: "block",
-                                    fontSize: 13,
-                                    fontWeight: 500,
-                                    color: "var(--text-secondary)",
-                                    marginBottom: 6,
-                                }}
-                            >
-                                Password
-                            </label>
-                            <div style={{ position: "relative" }}>
+                        <div className="flex flex-col gap-1.5">
+                            <div className="flex justify-between items-center">
+                                <label className="text-xs font-semibold text-slate-400">
+                                    Password
+                                </label>
+                                {!isSignUp && (
+                                    <button
+                                        type="button"
+                                        onClick={switchToForgotPassword}
+                                        className="bg-transparent border-none text-[#c084fc] hover:text-[#8b5cf6] cursor-pointer text-xs font-semibold transition-colors"
+                                    >
+                                        Forgot?
+                                    </button>
+                                )}
+                            </div>
+                            <div className="relative">
                                 <Lock
-                                    size={16}
-                                    style={{
-                                        position: "absolute",
-                                        left: 12,
-                                        top: "50%",
-                                        transform: "translateY(-50%)",
-                                        color: "var(--text-muted)",
-                                    }}
+                                    size={15}
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
                                 />
                                 <input
-                                    className="input"
+                                    className="input-field pl-11"
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
                                     required
                                     minLength={6}
-                                    style={{ paddingLeft: 38 }}
                                 />
                             </div>
                         </div>
                     )}
 
-                    {/* Forgot password link — only show in sign-in mode */}
-                    {!isSignUp && !isForgotPassword && (
-                        <div style={{ textAlign: "right", marginBottom: 24 }}>
-                            <button
-                                type="button"
-                                onClick={switchToForgotPassword}
-                                style={{
-                                    background: "none",
-                                    border: "none",
-                                    color: "var(--accent-primary)",
-                                    cursor: "pointer",
-                                    fontSize: 13,
-                                    fontWeight: 500,
-                                    padding: 0,
-                                }}
-                            >
-                                Forgot password?
-                            </button>
-                        </div>
-                    )}
-
-                    {/* Back to login — only show in forgot password mode */}
-                    {isForgotPassword && (
-                        <div style={{ marginBottom: 24 }} />
-                    )}
-
                     {error && (
-                        <div
-                            style={{
-                                padding: "10px 14px",
-                                borderRadius: 8,
-                                background: "rgba(239,68,68,0.1)",
-                                border: "1px solid rgba(239,68,68,0.3)",
-                                color: "#EF4444",
-                                fontSize: 13,
-                                marginBottom: 16,
-                            }}
-                        >
+                        <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium leading-relaxed mt-2 animate-scale-in">
                             {error}
                         </div>
                     )}
 
                     {message && (
-                        <div
-                            style={{
-                                padding: "10px 14px",
-                                borderRadius: 8,
-                                background: "rgba(16,185,129,0.1)",
-                                border: "1px solid rgba(16,185,129,0.3)",
-                                color: "#10B981",
-                                fontSize: 13,
-                                marginBottom: 16,
-                            }}
-                        >
+                        <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium leading-relaxed mt-2 animate-scale-in">
                             {message}
                         </div>
                     )}
@@ -358,81 +234,54 @@ export default function LoginPage() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="btn-primary"
-                        style={{
-                            width: "100%",
-                            justifyContent: "center",
-                            padding: "12px 16px",
-                            fontSize: 15,
-                            gap: 8,
-                        }}
+                        className="btn-primary w-full py-3.5 mt-2 flex items-center justify-center gap-2 text-sm font-semibold shadow-lg shadow-[#8b5cf6]/20 transition-all duration-300"
                     >
                         {loading ? (
-                            <Loader2
-                                size={18}
-                                style={{ animation: "spin 1s linear infinite" }}
-                            />
+                            <Loader2 size={16} className="animate-spin" />
                         ) : isForgotPassword ? (
                             <>
-                                Send Reset Link
-                                <ArrowRight size={16} />
+                                <span>Send Reset Link</span>
+                                <ArrowRight size={14} />
                             </>
                         ) : (
                             <>
-                                {isSignUp ? "Create Account" : "Sign In"}
-                                <ArrowRight size={16} />
+                                {isSignUp ? (
+                                    <>
+                                        <Sparkles size={14} />
+                                        <span>Create Account</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>Sign In</span>
+                                        <ArrowRight size={14} />
+                                    </>
+                                )}
                             </>
                         )}
                     </button>
                 </form>
 
                 {/* Toggle sign up / sign in / forgot password */}
-                <p
-                    style={{
-                        textAlign: "center",
-                        marginTop: 24,
-                        fontSize: 14,
-                        color: "var(--text-muted)",
-                    }}
-                >
+                <p className="text-center mt-6 text-sm text-slate-500 font-medium">
                     {isForgotPassword ? (
                         <button
                             onClick={switchToLogin}
-                            style={{
-                                background: "none",
-                                border: "none",
-                                color: "var(--accent-primary)",
-                                cursor: "pointer",
-                                fontWeight: 600,
-                                fontSize: 14,
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 4,
-                            }}
+                            className="bg-transparent border-none text-[#c084fc] hover:text-[#8b5cf6] cursor-pointer font-semibold text-sm inline-flex items-center gap-1.5 transition-colors"
                         >
-                            <ArrowLeft size={14} /> Back to Sign In
+                            <ArrowLeft size={13} /> Back to Sign In
                         </button>
                     ) : (
                         <>
-                            {isSignUp
-                                ? "Already have an account?"
-                                : "Don't have an account?"}{" "}
+                            {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
                             <button
                                 onClick={() => {
                                     setIsSignUp(!isSignUp);
                                     setError(null);
                                     setMessage(null);
                                 }}
-                                style={{
-                                    background: "none",
-                                    border: "none",
-                                    color: "var(--accent-primary)",
-                                    cursor: "pointer",
-                                    fontWeight: 600,
-                                    fontSize: 14,
-                                }}
+                                className="bg-transparent border-none text-[#c084fc] hover:text-[#8b5cf6] cursor-pointer font-bold text-sm transition-colors ml-1"
                             >
-                                {isSignUp ? "Sign in" : "Sign up"}
+                                {isSignUp ? "Sign In" : "Sign Up"}
                             </button>
                         </>
                     )}

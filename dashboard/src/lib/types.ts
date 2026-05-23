@@ -119,7 +119,7 @@ export interface Clip {
 
 export const PLAN_LIMITS: Record<Plan, { clips: number; videos: number; monthlyPrice: number; annualPrice: number; label: string }> = {
     free: { clips: 5, videos: 2, monthlyPrice: 0, annualPrice: 0, label: "Free" },
-    creator: { clips: 50, videos: 5, monthlyPrice: 24900, annualPrice: 19900, label: "Creator" },
+    creator: { clips: 150, videos: 30, monthlyPrice: 49900, annualPrice: 39900, label: "Creator" },
     pro: { clips: 200, videos: 20, monthlyPrice: 89900, annualPrice: 71900, label: "Pro" },
     agency: { clips: 9999, videos: 9999, monthlyPrice: 149900, annualPrice: 119900, label: "Agency" },
 };

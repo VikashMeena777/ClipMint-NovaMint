@@ -40,124 +40,68 @@ export default function ContactPage() {
     }
 
     return (
-        <main>
+        <main className="overflow-hidden min-h-screen bg-[#030305] text-[#f8fafc]">
             <Navbar />
 
-            <div
-                style={{
-                    maxWidth: 1000,
-                    margin: "0 auto",
-                    padding: "140px 24px 80px",
-                }}
-            >
-                <div style={{ textAlign: "center", marginBottom: 64 }}>
-                    <h1
-                        style={{
-                            fontSize: "clamp(32px, 5vw, 48px)",
-                            fontWeight: 800,
-                            marginBottom: 16,
-                        }}
-                    >
-                        Get In <span className="gradient-text">Touch</span>
+            <div className="max-w-5xl mx-auto px-6 pt-36 pb-24 md:pt-44 md:pb-36 relative">
+                {/* Ambient glow */}
+                <div className="absolute w-[280px] h-[280px] rounded-full bg-[#8b5cf6]/5 blur-[90px] pointer-events-none top-20 right-1/4" />
+
+                <div className="text-center mb-16">
+                    <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight">
+                        Get In <span className="gradient-text bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4]">Touch</span>
                     </h1>
-                    <p
-                        style={{
-                            fontSize: 18,
-                            color: "var(--text-secondary)",
-                            maxWidth: 500,
-                            margin: "0 auto",
-                            lineHeight: 1.6,
-                        }}
-                    >
-                        Have a question, suggestion, or need help? We{"'"}d love to hear
-                        from you.
+                    <p className="text-base sm:text-lg text-slate-400 max-w-md mx-auto leading-relaxed">
+                        Have a question, suggestion, or need help? We'd love to hear from you.
                     </p>
                 </div>
 
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-                        gap: 40,
-                    }}
-                >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
                     {/* Contact info */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                    <div className="flex flex-col gap-6">
                         {[
                             {
-                                icon: <Mail size={22} />,
+                                icon: <Mail size={20} />,
                                 title: "Email",
                                 value: "ClipMint.Support@gmail.com",
                                 href: "mailto:ClipMint.Support@gmail.com",
                             },
                             {
-                                icon: <MapPin size={22} />,
+                                icon: <MapPin size={20} />,
                                 title: "Address",
                                 value: "Jaipur, Rajasthan, India",
                             },
                             {
-                                icon: <Send size={22} />,
+                                icon: <Send size={20} />,
                                 title: "Founder",
                                 value: "VIKASH MEENA",
                             },
                             {
-                                icon: <Clock size={22} />,
+                                icon: <Clock size={20} />,
                                 title: "Support Hours",
                                 value: "Mon – Sat, 10 AM – 7 PM IST",
                             },
                         ].map((info) => (
                             <div
                                 key={info.title}
-                                className="glass-card"
-                                style={{
-                                    padding: 24,
-                                    display: "flex",
-                                    alignItems: "flex-start",
-                                    gap: 16,
-                                }}
+                                className="glass-card p-6 flex items-start gap-4"
                             >
-                                <div
-                                    style={{
-                                        width: 44,
-                                        height: 44,
-                                        borderRadius: 12,
-                                        background: "rgba(108, 92, 231, 0.12)",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        color: "var(--accent-primary)",
-                                        flexShrink: 0,
-                                    }}
-                                >
+                                <div className="w-11 h-11 rounded-xl bg-[#8b5cf6]/10 flex items-center justify-center text-[#8b5cf6] border border-[#8b5cf6]/15 flex-shrink-0">
                                     {info.icon}
                                 </div>
                                 <div>
-                                    <div
-                                        style={{
-                                            fontSize: 13,
-                                            color: "var(--text-muted)",
-                                            marginBottom: 4,
-                                            textTransform: "uppercase",
-                                            letterSpacing: 0.5,
-                                            fontWeight: 600,
-                                        }}
-                                    >
+                                    <div className="text-[10px] font-bold text-[#8b5cf6] tracking-wider uppercase mb-1">
                                         {info.title}
                                     </div>
                                     {info.href ? (
                                         <a
                                             href={info.href}
-                                            style={{
-                                                color: "var(--accent-secondary)",
-                                                textDecoration: "none",
-                                                fontSize: 15,
-                                                fontWeight: 500,
-                                            }}
+                                            className="text-slate-200 hover:text-[#c084fc] no-underline text-base font-semibold transition-colors"
                                         >
                                             {info.value}
                                         </a>
                                     ) : (
-                                        <div style={{ fontSize: 15, fontWeight: 500 }}>
+                                        <div className="text-slate-200 text-base font-semibold">
                                             {info.value}
                                         </div>
                                     )}
@@ -165,32 +109,15 @@ export default function ContactPage() {
                             </div>
                         ))}
 
-                        <div
-                            className="glass-card"
-                            style={{
-                                padding: 24,
-                                background:
-                                    "linear-gradient(135deg, rgba(108, 92, 231, 0.08) 0%, rgba(0, 229, 255, 0.04) 100%)",
-                            }}
-                        >
-                            <div
-                                style={{
-                                    fontSize: 14,
-                                    fontWeight: 600,
-                                    marginBottom: 8,
-                                }}
-                            >
+                        <div className="glass-card p-6 bg-gradient-to-r from-[#8b5cf6]/10 via-[#06b6d4]/5 to-transparent">
+                            <div className="text-sm font-bold text-slate-300 mb-2">
                                 Follow us
                             </div>
                             <a
                                 href="https://instagram.com/clipmintapp"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                style={{
-                                    color: "var(--accent-secondary)",
-                                    textDecoration: "none",
-                                    fontSize: 14,
-                                }}
+                                className="text-[#c084fc] hover:text-[#8b5cf6] no-underline text-xs sm:text-sm font-medium transition-colors"
                             >
                                 @ClipMintApp on Instagram →
                             </a>
@@ -198,71 +125,31 @@ export default function ContactPage() {
                     </div>
 
                     {/* Contact form */}
-                    <div className="glass-card" style={{ padding: 32 }}>
+                    <div className="glass-card p-8 md:p-10 shadow-xl">
                         {sent ? (
-                            <div
-                                style={{
-                                    textAlign: "center",
-                                    padding: "60px 20px",
-                                }}
-                            >
-                                <div
-                                    style={{
-                                        fontSize: 48,
-                                        marginBottom: 16,
-                                    }}
-                                >
-                                    ✉️
-                                </div>
-                                <h3
-                                    style={{
-                                        fontSize: 22,
-                                        fontWeight: 700,
-                                        marginBottom: 8,
-                                    }}
-                                >
+                            <div className="text-center py-12 px-4 flex flex-col items-center gap-4 animate-scale-in">
+                                <div className="text-5xl">✉️</div>
+                                <h3 className="text-2xl font-bold text-slate-200">
                                     Message Sent!
                                 </h3>
-                                <p style={{ color: "var(--text-secondary)" }}>
-                                    We{"'"}ll get back to you within 24 hours.
+                                <p className="text-sm text-slate-400 max-w-xs mx-auto leading-relaxed">
+                                    We'd love to help you. We will get back to you within 24 hours.
                                 </p>
                                 <button
-                                    className="btn-secondary"
-                                    style={{ marginTop: 24 }}
+                                    className="btn-secondary mt-6 py-2.5 px-6 text-sm"
                                     onClick={() => setSent(false)}
                                 >
                                     Send Another
                                 </button>
                             </div>
                         ) : (
-                            <form
-                                onSubmit={handleSubmit}
-                                style={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: 20,
-                                }}
-                            >
-                                <h3
-                                    style={{
-                                        fontSize: 20,
-                                        fontWeight: 700,
-                                        marginBottom: 4,
-                                    }}
-                                >
+                            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                                <h3 className="text-xl font-bold text-slate-200 mb-2 border-b border-white/5 pb-2">
                                     Send us a message
                                 </h3>
 
-                                <div>
-                                    <label
-                                        style={{
-                                            fontSize: 13,
-                                            fontWeight: 600,
-                                            color: "var(--text-secondary)",
-                                            marginBottom: 6,
-                                            display: "block",
-                                        }}
-                                    >
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs font-semibold text-slate-400">
                                         Your Name
                                     </label>
                                     <input
@@ -276,16 +163,8 @@ export default function ContactPage() {
                                     />
                                 </div>
 
-                                <div>
-                                    <label
-                                        style={{
-                                            fontSize: 13,
-                                            fontWeight: 600,
-                                            color: "var(--text-secondary)",
-                                            marginBottom: 6,
-                                            display: "block",
-                                        }}
-                                    >
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs font-semibold text-slate-400">
                                         Email Address
                                     </label>
                                     <input
@@ -300,16 +179,8 @@ export default function ContactPage() {
                                     />
                                 </div>
 
-                                <div>
-                                    <label
-                                        style={{
-                                            fontSize: 13,
-                                            fontWeight: 600,
-                                            color: "var(--text-secondary)",
-                                            marginBottom: 6,
-                                            display: "block",
-                                        }}
-                                    >
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs font-semibold text-slate-400">
                                         Subject
                                     </label>
                                     <input
@@ -323,52 +194,39 @@ export default function ContactPage() {
                                     />
                                 </div>
 
-                                <div>
-                                    <label
-                                        style={{
-                                            fontSize: 13,
-                                            fontWeight: 600,
-                                            color: "var(--text-secondary)",
-                                            marginBottom: 6,
-                                            display: "block",
-                                        }}
-                                    >
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs font-semibold text-slate-400">
                                         Message
                                     </label>
                                     <textarea
-                                        className="input-field"
+                                        className="input-field min-h-[120px] resize-y"
                                         placeholder="Tell us what's on your mind..."
                                         value={form.message}
                                         onChange={(e) =>
                                             setForm({ ...form, message: e.target.value })
                                         }
                                         required
-                                        rows={5}
+                                        rows={4}
                                     />
                                 </div>
 
                                 {error && (
-                                    <p
-                                        style={{
-                                            color: "var(--accent-red)",
-                                            fontSize: 14,
-                                        }}
-                                    >
+                                    <p className="text-red-400 text-xs font-semibold mt-2 animate-scale-in">
                                         {error}
                                     </p>
                                 )}
 
                                 <button
                                     type="submit"
-                                    className="btn-primary"
+                                    className="btn-primary w-full py-3.5 mt-2 text-sm font-semibold flex items-center justify-center gap-2 shadow-lg"
                                     disabled={sending}
-                                    style={{ justifyContent: "center", padding: "14px 28px" }}
                                 >
                                     {sending ? (
                                         "Sending..."
                                     ) : (
                                         <>
-                                            <Send size={16} /> Send Message
+                                            <Send size={15} />
+                                            <span>Send Message</span>
                                         </>
                                     )}
                                 </button>
