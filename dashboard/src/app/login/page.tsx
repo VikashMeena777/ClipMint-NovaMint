@@ -174,7 +174,7 @@ export default function LoginPage() {
                                 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
                             />
                             <input
-                                className="input-field pl-11"
+                                className="input-field pl-11!"
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -207,7 +207,7 @@ export default function LoginPage() {
                                     className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
                                 />
                                 <input
-                                    className="input-field pl-11"
+                                    className="input-field pl-11!"
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}

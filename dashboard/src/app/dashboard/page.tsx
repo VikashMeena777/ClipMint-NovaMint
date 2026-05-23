@@ -174,7 +174,7 @@ export default function JobsPage() {
                 <div className="flex-1 relative">
                     <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#64748b]" />
                     <input 
-                        className="input-field pl-11 py-3" 
+                        className="input-field pl-11! py-3" 
                         placeholder="Search jobs..." 
                         value={search} 
                         onChange={(e) => setSearch(e.target.value)} 
