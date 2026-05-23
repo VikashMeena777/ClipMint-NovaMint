@@ -166,33 +166,40 @@ export default function HomePage() {
           . Platform-ready in minutes.
         </p>
 
-        <div className="animate-fade-in-up flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-md">
+        <div className="animate-fade-in-up flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-lg min-h-[58px]">
           {loading ? (
-            <div className="h-14 w-full sm:w-64 skeleton rounded-xl" />
-          ) : user ? (
-            <Link
-              href="/dashboard"
-              className="btn-primary py-4 px-8 text-base w-full sm:w-auto flex items-center justify-center gap-2"
-            >
-              <Upload size={18} />
-              <span>Go to Dashboard</span>
-            </Link>
+            <>
+              <div className="h-[54px] w-full sm:flex-1 skeleton rounded-xl" />
+              <div className="h-[54px] w-full sm:w-36 skeleton rounded-xl" />
+            </>
           ) : (
-            <Link
-              href="/login"
-              className="btn-primary py-4 px-8 text-base w-full sm:w-auto flex items-center justify-center gap-2"
-            >
-              <Upload size={18} />
-              <span>Start Free — No Card Required</span>
-            </Link>
+            <>
+              {user ? (
+                <Link
+                  href="/dashboard"
+                  className="btn-primary py-4 px-8 text-base w-full sm:flex-1 flex items-center justify-center gap-2"
+                >
+                  <Upload size={18} />
+                  <span>Go to Dashboard</span>
+                </Link>
+              ) : (
+                <Link
+                  href="/login"
+                  className="btn-primary py-4 px-8 text-base w-full sm:flex-1 flex items-center justify-center gap-2"
+                >
+                  <Upload size={18} />
+                  <span>Start Free — No Card Required</span>
+                </Link>
+              )}
+              <Link
+                href="/features"
+                className="btn-secondary py-4 px-8 text-base w-full sm:w-36 flex items-center justify-center gap-2 flex-shrink-0"
+              >
+                <Play size={18} />
+                <span>See Features</span>
+              </Link>
+            </>
           )}
-          <Link
-            href="/features"
-            className="btn-secondary py-4 px-8 text-base w-full sm:w-auto flex items-center justify-center gap-2"
-          >
-            <Play size={18} />
-            <span>See Features</span>
-          </Link>
         </div>
 
         {/* Trust badge */}

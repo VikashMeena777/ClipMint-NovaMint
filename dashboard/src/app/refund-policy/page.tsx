@@ -1,147 +1,154 @@
+"use client";
+
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-    title: "Refund Policy — ClipMint",
-    description:
-        "ClipMint 7-day refund policy. Conditions for eligibility, how to request a refund, and processing timelines.",
-};
+import Link from "next/link";
+import { HelpCircle, Calendar, ArrowLeft, Mail, AlertTriangle, BadgePercent } from "lucide-react";
 
 export default function RefundPolicyPage() {
     return (
-        <main>
+        <main className="overflow-hidden min-h-screen bg-[#030305] text-[#f8fafc]">
             <Navbar />
-            <div className="legal-content">
-                <h1>Refund Policy</h1>
-                <p className="legal-date">Last updated: March 9, 2026</p>
 
-                <p>
-                    At NovaMint Networks, we want you to be completely satisfied
-                    with ClipMint. This Refund Policy outlines the terms under which
-                    refunds may be issued for our subscription plans.
-                </p>
+            {/* Ambient Background Glow */}
+            <div className="absolute w-[400px] h-[400px] rounded-full bg-[#8b5cf6]/5 blur-[120px] pointer-events-none top-20 left-1/4" />
+            <div className="absolute w-[300px] h-[300px] rounded-full bg-[#ec4899]/3 blur-[100px] pointer-events-none top-80 right-1/4" />
 
-                <h2>1. Refund Eligibility</h2>
-                <p>
-                    We offer a <strong>7-day refund window</strong> from the date of
-                    your initial subscription purchase. To be eligible for a refund:
-                </p>
-                <ul>
-                    <li>
-                        The refund request must be made within 7 days of your first
-                        payment
-                    </li>
-                    <li>
-                        The request should indicate why the Service did not meet your
-                        expectations
-                    </li>
-                    <li>
-                        You should have genuinely attempted to use the Service (not just
-                        signed up without trying it)
-                    </li>
-                </ul>
+            <div className="max-w-4xl mx-auto px-6 pt-36 pb-24 md:pt-44 md:pb-36 relative">
+                {/* Back Button */}
+                <Link
+                    href="/"
+                    className="btn-secondary py-2 px-4 text-xs font-semibold inline-flex items-center gap-2 mb-8"
+                >
+                    <ArrowLeft size={13} />
+                    <span>Back to Home</span>
+                </Link>
 
-                <h2>2. How to Request a Refund</h2>
-                <p>To request a refund, email us at:</p>
-                <ul>
-                    <li>
-                        <a href="mailto:ClipMint.Billing@gmail.com">
-                            ClipMint.Billing@gmail.com
-                        </a>
-                    </li>
-                </ul>
-                <p>Include the following in your email:</p>
-                <ul>
-                    <li>Your registered email address</li>
-                    <li>Subscription plan name</li>
-                    <li>Date of purchase</li>
-                    <li>Reason for refund request</li>
-                </ul>
+                <div className="text-center mb-12">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ec4899]/10 border border-[#ec4899]/20 text-xs font-semibold text-[#f472b6] mb-4">
+                        <BadgePercent size={13} />
+                        <span>7-Day Full Protection Window</span>
+                    </div>
+                    <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 tracking-tight">
+                        Refund <span className="gradient-text bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4]">Policy</span>
+                    </h1>
+                    <p className="text-slate-400 text-sm flex items-center justify-center gap-2">
+                        <Calendar size={13} />
+                        <span>Last updated: March 9, 2026</span>
+                    </p>
+                </div>
 
-                <h2>3. Processing Timeline</h2>
-                <ul>
-                    <li>
-                        We will acknowledge your refund request within{" "}
-                        <strong>24 hours</strong>
-                    </li>
-                    <li>
-                        Approved refunds will be processed within{" "}
-                        <strong>5-7 business days</strong>
-                    </li>
-                    <li>
-                        The refund will be credited to the same payment method used for
-                        the purchase
-                    </li>
-                    <li>
-                        You will receive a confirmation email once the refund has been
-                        processed
-                    </li>
-                </ul>
+                {/* Main Legal Content Container */}
+                <div className="glass-card p-8 md:p-12 flex flex-col gap-8 shadow-xl shadow-[#8b5cf6]/3">
+                    <section className="border-b border-white/5 pb-6">
+                        <p className="text-slate-300 leading-relaxed">
+                            At NovaMint Networks, customer satisfaction is our top priority. We want you to be
+                            completely confident using ClipMint. This Refund Policy outlines the terms under which
+                            refunds may be requested and issued for our subscription or one-time plans.
+                        </p>
+                    </section>
 
-                <h2>4. Non-Refundable Scenarios</h2>
-                <p>Refunds will <strong>not</strong> be issued in the following cases:</p>
-                <ul>
-                    <li>
-                        Requests made after the 7-day refund window has expired
-                    </li>
-                    <li>
-                        Significant usage of the Service during the refund period (more
-                        than 50% of plan limits consumed)
-                    </li>
-                    <li>
-                        Free plan users (no payment was made)
-                    </li>
-                    <li>
-                        Subscription renewals (refunds apply only to the first payment)
-                    </li>
-                    <li>
-                        Violations of our Terms &amp; Conditions
-                    </li>
-                    <li>
-                        Change of mind without attempting to use the Service
-                    </li>
-                </ul>
+                    <section className="flex flex-col gap-4">
+                        <h2 className="text-xl sm:text-2xl font-bold text-slate-200">
+                            1. Refund Eligibility Window
+                        </h2>
+                        <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+                            We offer a <strong className="text-slate-200">7-day refund window</strong> from the date of
+                            your initial purchase. To qualify for a complete refund:
+                        </p>
+                        <ul className="list-none flex flex-col gap-3.5 pl-2 mt-2">
+                            <li className="text-sm text-slate-400 flex items-start gap-3">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#8b5cf6] mt-2 flex-shrink-0" />
+                                <span>The refund request must be made within 7 calendar days of your initial payment.</span>
+                            </li>
+                            <li className="text-sm text-slate-400 flex items-start gap-3">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#8b5cf6] mt-2 flex-shrink-0" />
+                                <span>The request should state clearly why the AI clipping or captions did not meet your creative expectations.</span>
+                            </li>
+                            <li className="text-sm text-slate-400 flex items-start gap-3">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#8b5cf6] mt-2 flex-shrink-0" />
+                                <span>The account should have genuine usage (at least one video processed) rather than single sign-up with immediate cancellation.</span>
+                            </li>
+                        </ul>
+                    </section>
 
-                <h2>5. Cancellation</h2>
-                <p>
-                    Cancelling your subscription and requesting a refund are separate
-                    actions:
-                </p>
-                <ul>
-                    <li>
-                        <strong>Cancel:</strong> You can cancel your subscription anytime
-                        from the Settings page. You retain access until the end of your
-                        billing cycle.
-                    </li>
-                    <li>
-                        <strong>Refund:</strong> A refund must be explicitly requested
-                        within the 7-day window via email.
-                    </li>
-                </ul>
+                    <section className="flex flex-col gap-4">
+                        <h2 className="text-xl sm:text-2xl font-bold text-slate-200">
+                            2. Requesting a Refund
+                        </h2>
+                        <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+                            To initiate a refund request, simply email our billing support team:
+                        </p>
+                        <div className="flex items-center gap-3 p-4 rounded-xl bg-white/1.5 border border-white/5 text-sm text-slate-300 max-w-md">
+                            <Mail size={16} className="text-[#8b5cf6] flex-shrink-0" />
+                            <a href="mailto:ClipMint.Billing@gmail.com" className="hover:text-white transition-colors font-bold text-[#c084fc]">
+                                ClipMint.Billing@gmail.com
+                            </a>
+                        </div>
+                        <p className="text-slate-400 text-xs mt-1">
+                            Please specify your registered account email, date of purchase, subscription plan type, and order ID if available.
+                        </p>
+                    </section>
 
-                <h2>6. Partial Refunds</h2>
-                <p>
-                    We may, at our sole discretion, offer partial refunds in
-                    exceptional circumstances (e.g., extended service outage affecting
-                    your ability to use ClipMint). Partial refund amounts will be
-                    calculated pro-rata for the affected period.
-                </p>
+                    <section className="flex flex-col gap-4">
+                        <h2 className="text-xl sm:text-2xl font-bold text-slate-200">
+                            3. Processing Timelines
+                        </h2>
+                        <ul className="list-none flex flex-col gap-3 pl-2">
+                            <li className="text-sm text-slate-400 flex items-center gap-3">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#06b6d4] flex-shrink-0" />
+                                <span>Acknowledgement & status verification of your ticket within 24 hours.</span>
+                            </li>
+                            <li className="text-sm text-slate-400 flex items-center gap-3">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#06b6d4] flex-shrink-0" />
+                                <span>Processed refunds appear in your source bank/account within 5-7 business days.</span>
+                            </li>
+                            <li className="text-sm text-slate-400 flex items-center gap-3">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#06b6d4] flex-shrink-0" />
+                                <span>All credits are automatically returned directly to the payment instrument used during order checkout.</span>
+                            </li>
+                        </ul>
+                    </section>
 
-                <h2>7. Contact</h2>
-                <p>
-                    For any questions regarding this Refund Policy, please contact us
-                    at:
-                </p>
-                <ul>
-                    <li>
-                        Email:{" "}
-                        <a href="mailto:ClipMint.Support@gmail.com">
-                            ClipMint.Support@gmail.com
-                        </a>
-                    </li>
-                    <li>Address: Jaipur, Rajasthan, India</li>
-                </ul>
+                    <section className="flex flex-col gap-4">
+                        <h2 className="text-xl sm:text-2xl font-bold text-slate-200 flex items-center gap-2">
+                            <AlertTriangle size={18} className="text-[#ef4444]" />
+                            <span>Non-Refundable Circumstances</span>
+                        </h2>
+                        <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+                            Refunds will not be issued under the following conditions:
+                        </p>
+                        <ul className="list-none flex flex-col gap-3 pl-2">
+                            <li className="text-sm text-slate-500 flex items-center gap-3">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-500/40 flex-shrink-0" />
+                                <span>Requests submitted after the 7-day initial window has expired.</span>
+                            </li>
+                            <li className="text-sm text-slate-500 flex items-center gap-3">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-500/40 flex-shrink-0" />
+                                <span>Significant plan utilization (greater than 50% of the clips or videos processed).</span>
+                            </li>
+                            <li className="text-sm text-slate-500 flex items-center gap-3">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-500/40 flex-shrink-0" />
+                                <span>Automatic plan renewals (refunds apply strictly to your first subscription cycle).</span>
+                            </li>
+                            <li className="text-sm text-slate-500 flex items-center gap-3">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-500/40 flex-shrink-0" />
+                                <span>Suspension of service due to clear violations of our platform Acceptable Use policies.</span>
+                            </li>
+                        </ul>
+                    </section>
+
+                    <section className="flex flex-col gap-4 border-t border-white/5 pt-8">
+                        <h2 className="text-xl sm:text-2xl font-bold text-slate-200">
+                            5. Subscription Cancellation
+                        </h2>
+                        <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+                            Please note that cancelling your recurring billing and requesting a refund are separate actions.
+                            You can cancel auto-billing at any time directly on your Settings page to stop future renewals, which
+                            keeps your current plan active until the final day of the cycle.
+                        </p>
+                    </section>
+                </div>
             </div>
             <Footer />
         </main>

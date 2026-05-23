@@ -1,187 +1,146 @@
+"use client";
+
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-    title: "Terms & Conditions — ClipMint",
-    description:
-        "Terms of Service for ClipMint. Read about user responsibilities, acceptable use, intellectual property, and governing law.",
-};
+import Link from "next/link";
+import { Scale, Calendar, ArrowLeft, Mail } from "lucide-react";
 
 export default function TermsPage() {
     return (
-        <main>
+        <main className="overflow-hidden min-h-screen bg-[#030305] text-[#f8fafc]">
             <Navbar />
-            <div className="legal-content">
-                <h1>Terms &amp; Conditions</h1>
-                <p className="legal-date">Last updated: March 9, 2026</p>
 
-                <p>
-                    These Terms &amp; Conditions (&quot;Terms&quot;) govern your use of ClipMint,
-                    operated by NovaMint Networks (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;). By accessing
-                    or using the Service, you agree to be bound by these Terms.
-                </p>
+            {/* Ambient Background Glow */}
+            <div className="absolute w-[400px] h-[400px] rounded-full bg-[#8b5cf6]/5 blur-[120px] pointer-events-none top-20 left-1/4" />
+            <div className="absolute w-[300px] h-[300px] rounded-full bg-[#06b6d4]/3 blur-[100px] pointer-events-none top-80 right-1/4" />
 
-                <h2>1. Account Registration</h2>
-                <ul>
-                    <li>
-                        You must provide accurate, complete information when creating an
-                        account.
-                    </li>
-                    <li>
-                        You are responsible for safeguarding your account credentials.
-                    </li>
-                    <li>
-                        You must be at least 13 years old to use the Service.
-                    </li>
-                    <li>
-                        One person or entity may not maintain more than one free account.
-                    </li>
-                </ul>
+            <div className="max-w-4xl mx-auto px-6 pt-36 pb-24 md:pt-44 md:pb-36 relative">
+                {/* Back Button */}
+                <Link
+                    href="/"
+                    className="btn-secondary py-2 px-4 text-xs font-semibold inline-flex items-center gap-2 mb-8"
+                >
+                    <ArrowLeft size={13} />
+                    <span>Back to Home</span>
+                </Link>
 
-                <h2>2. Acceptable Use</h2>
-                <p>When using ClipMint, you agree not to:</p>
-                <ul>
-                    <li>
-                        Upload content that infringes on copyrights, trademarks, or
-                        intellectual property of others
-                    </li>
-                    <li>
-                        Use the Service for any unlawful purpose or in violation of any
-                        applicable laws
-                    </li>
-                    <li>
-                        Attempt to gain unauthorized access to the Service, other
-                        accounts, or related systems
-                    </li>
-                    <li>
-                        Use automated tools (bots, scrapers) to access the Service beyond
-                        the provided API
-                    </li>
-                    <li>
-                        Upload content that is harmful, abusive, obscene, or promotes
-                        violence
-                    </li>
-                    <li>
-                        Resell or redistribute the Service without authorization
-                    </li>
-                </ul>
+                <div className="text-center mb-12">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#06b6d4]/10 border border-[#06b6d4]/20 text-xs font-semibold text-[#67e8f9] mb-4">
+                        <Scale size={13} />
+                        <span>Platform Terms of Service</span>
+                    </div>
+                    <h1 className="text-4xl sm:text-5xl font-extrabold mb-4 tracking-tight">
+                        Terms &amp; <span className="gradient-text bg-gradient-to-r from-[#8b5cf6] to-[#06b6d4]">Conditions</span>
+                    </h1>
+                    <p className="text-slate-400 text-sm flex items-center justify-center gap-2">
+                        <Calendar size={13} />
+                        <span>Last updated: March 9, 2026</span>
+                    </p>
+                </div>
 
-                <h2>3. Intellectual Property</h2>
-                <ul>
-                    <li>
-                        <strong>Your Content:</strong> You retain full ownership of your
-                        original video content and all clips generated from it.
-                    </li>
-                    <li>
-                        <strong>Our Service:</strong> The ClipMint platform, including its
-                        design, code, caption styles, and AI models, are the intellectual
-                        property of NovaMint Networks.
-                    </li>
-                    <li>
-                        <strong>License:</strong> By uploading content, you grant us a
-                        limited, non-exclusive license to process your video solely for
-                        the purpose of providing the Service.
-                    </li>
-                </ul>
+                {/* Main Legal Content Container */}
+                <div className="glass-card p-8 md:p-12 flex flex-col gap-8 shadow-xl shadow-[#8b5cf6]/3">
+                    <section className="border-b border-white/5 pb-6">
+                        <p className="text-slate-300 leading-relaxed">
+                            These Terms &amp; Conditions (&quot;Terms&quot;) govern your use of ClipMint,
+                            operated by NovaMint Networks (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;). By accessing
+                            or using the Service, you agree to be bound by these Terms.
+                        </p>
+                    </section>
 
-                <h2>4. Subscription Plans &amp; Payments</h2>
-                <ul>
-                    <li>
-                        Free plan usage is subject to monthly limits (clips and videos per
-                        month).
-                    </li>
-                    <li>
-                        Paid subscriptions are billed monthly. Payments are processed
-                        through Cashfree.
-                    </li>
-                    <li>
-                        Prices are listed in Indian Rupees (₹) and are subject to
-                        applicable taxes.
-                    </li>
-                    <li>
-                        You may cancel your subscription at any time. Access continues
-                        until the end of the current billing period.
-                    </li>
-                    <li>
-                        We reserve the right to change pricing with 30 days prior notice
-                        to existing subscribers.
-                    </li>
-                </ul>
+                    <section className="flex flex-col gap-4">
+                        <h2 className="text-xl sm:text-2xl font-bold text-slate-200">
+                            1. Account Credentials &amp; Profiles
+                        </h2>
+                        <ul className="list-none flex flex-col gap-3 pl-2">
+                            <li className="text-sm text-slate-400 flex items-start gap-3">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#8b5cf6] mt-2 flex-shrink-0" />
+                                <span>You must provide accurate, current, and complete details when creating an account profile.</span>
+                            </li>
+                            <li className="text-sm text-slate-400 flex items-start gap-3">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#8b5cf6] mt-2 flex-shrink-0" />
+                                <span>You are solely responsible for securing your login sessions and API credential tokens.</span>
+                            </li>
+                            <li className="text-sm text-slate-400 flex items-start gap-3">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#8b5cf6] mt-2 flex-shrink-0" />
+                                <span>Platform access is limited to individuals who are at least 13 years of age.</span>
+                            </li>
+                        </ul>
+                    </section>
 
-                <h2>5. Service Availability</h2>
-                <ul>
-                    <li>
-                        We strive for 99.9% uptime but do not guarantee uninterrupted
-                        access to the Service.
-                    </li>
-                    <li>
-                        Processing times depend on video length, server load, and your
-                        subscription plan.
-                    </li>
-                    <li>
-                        We may perform scheduled maintenance with reasonable advance
-                        notice.
-                    </li>
-                </ul>
+                    <section className="flex flex-col gap-4">
+                        <h2 className="text-xl sm:text-2xl font-bold text-slate-200">
+                            2. Platform Acceptable Use
+                        </h2>
+                        <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+                            To maintain speed and safety for all creators, you agree not to:
+                        </p>
+                        <ul className="list-none flex flex-col gap-3 pl-2">
+                            <li className="text-sm text-slate-400 flex items-start gap-3">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#06b6d4] mt-2 flex-shrink-0" />
+                                <span>Upload copyright-protected streams, clips, or materials without explicit owner authorization.</span>
+                            </li>
+                            <li className="text-sm text-slate-400 flex items-start gap-3">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#06b6d4] mt-2 flex-shrink-0" />
+                                <span>Deploy automated scrapers, web-spiders, or batch crawlers that bypass plan API limits.</span>
+                            </li>
+                            <li className="text-sm text-slate-400 flex items-start gap-3">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#06b6d4] mt-2 flex-shrink-0" />
+                                <span>Submit media material that is hateful, abusive, violent, or explicitly malicious.</span>
+                            </li>
+                        </ul>
+                    </section>
 
-                <h2>6. Limitation of Liability</h2>
-                <p>
-                    To the fullest extent permitted by law, NovaMint Networks shall
-                    not be liable for any indirect, incidental, special, consequential,
-                    or punitive damages, including loss of profits, data, or business
-                    opportunities, arising from your use of the Service.
-                </p>
-                <p>
-                    Our total liability for any claim arising from or relating to the
-                    Service shall not exceed the amount paid by you in the 12 months
-                    preceding the claim.
-                </p>
+                    <section className="flex flex-col gap-4">
+                        <h2 className="text-xl sm:text-2xl font-bold text-slate-200">
+                            3. Intellectual Property Rights
+                        </h2>
+                        <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+                            - <strong className="text-slate-300">Your Output Content:</strong> You retain full copyright ownership of all raw videos and final rendered clips. ClipMint claims zero content rights.
+                        </p>
+                        <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+                            - <strong className="text-slate-300">Our Platform Assets:</strong> The ClipMint branding, logo designs, web interface style sheets, AI processing modules, and custom caption style templates remain sole properties of NovaMint Networks.
+                        </p>
+                    </section>
 
-                <h2>7. Account Termination</h2>
-                <ul>
-                    <li>
-                        You may delete your account at any time through the Settings page
-                        or by contacting support.
-                    </li>
-                    <li>
-                        We may suspend or terminate your account if you violate these
-                        Terms, engage in fraudulent activity, or abuse the Service.
-                    </li>
-                    <li>
-                        Upon termination, your data will be deleted within 30 days,
-                        except as required by law.
-                    </li>
-                </ul>
+                    <section className="flex flex-col gap-4">
+                        <h2 className="text-xl sm:text-2xl font-bold text-slate-200">
+                            4. Subscriptions, Payments &amp; Credits
+                        </h2>
+                        <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+                            Usage limits on free accounts are updated monthly. Subscriptions automatically renew at current
+                            base rates unless cancelled prior to renewal checkout. All charges are securely processed using Cashfree API gateways.
+                        </p>
+                    </section>
 
-                <h2>8. Indemnification</h2>
-                <p>
-                    You agree to indemnify and hold harmless NovaMint Networks from
-                    any claims, damages, or expenses arising from your use of the
-                    Service, your content, or your violation of these Terms.
-                </p>
+                    <section className="flex flex-col gap-4">
+                        <h2 className="text-xl sm:text-2xl font-bold text-slate-200">
+                            5. Disclaimers &amp; Limitations of Liability
+                        </h2>
+                        <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+                            The ClipMint platform and services are provided on an &quot;as-is&quot; and &quot;as-available&quot; operational standard.
+                            NovaMint Networks claims zero liability for downstream metrics or social distribution results of compiled video files.
+                        </p>
+                    </section>
 
-                <h2>9. Governing Law</h2>
-                <p>
-                    These Terms are governed by the laws of India. Any disputes shall
-                    be subject to the exclusive jurisdiction of the courts in Jaipur,
-                    Rajasthan, India.
-                </p>
+                    <section className="flex flex-col gap-4 border-t border-white/5 pt-8">
+                        <h2 className="text-xl sm:text-2xl font-bold text-slate-200">
+                            6. Governing Law &amp; Disputes
+                        </h2>
+                        <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
+                            These Terms are strictly governed by current active laws of India. Any litigation actions or legal
+                            claims shall fall under exclusive territorial jurisdiction of local courtrooms inside Jaipur, Rajasthan, India.
+                        </p>
+                    </section>
 
-                <h2>10. Changes to Terms</h2>
-                <p>
-                    We may modify these Terms at any time. Material changes will be
-                    notified via email or dashboard notification. Continued use of the
-                    Service after changes constitutes acceptance of the updated Terms.
-                </p>
-
-                <h2>11. Contact</h2>
-                <p>
-                    For questions about these Terms, contact us at{" "}
-                    <a href="mailto:ClipMint.Support@gmail.com">
-                        ClipMint.Support@gmail.com
-                    </a>
-                </p>
+                    <section className="flex items-center gap-3 p-4 rounded-xl bg-white/1.5 border border-white/5 text-sm text-slate-300 max-w-md">
+                        <Mail size={16} className="text-[#8b5cf6] flex-shrink-0" />
+                        <span>Questions? Contact us at: </span>
+                        <a href="mailto:ClipMint.Support@gmail.com" className="hover:text-white transition-colors font-bold text-[#c084fc]">
+                            ClipMint.Support@gmail.com
+                        </a>
+                    </section>
+                </div>
             </div>
             <Footer />
         </main>

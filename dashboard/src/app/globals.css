@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+@theme {
+  --color-border: var(--border-subtle);
+  --color-ring: var(--border-active);
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+}
+
 /* ─── Premium Design Tokens (V2) ─── */
 :root {
     --bg-primary: #030305;
@@ -42,14 +49,20 @@
     --fs-3xl: clamp(44px, 6vw, 72px);
 }
 
-* {
+@layer base {
+  * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-}
-
-html {
+    border-color: var(--border-subtle);
+  }
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+  }
+  html {
     scroll-behavior: smooth;
+  }
 }
 
 body {

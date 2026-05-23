@@ -440,12 +440,12 @@ export default function PricingPage() {
                             </thead>
                             <tbody>
                                 {[
-                                    ["Clips/month", "5", "50", "200", "Unlimited"],
-                                    ["Videos/month", "2", "5", "20", "Unlimited"],
+                                    ["Clips/month", "5", "150", "200", "Unlimited"],
+                                    ["Videos/month", "2", "30", "20", "Unlimited"],
                                     ["Output quality", "720p", "1080p", "4K", "4K"],
                                     ["Caption styles", "3", "9", "9", "9"],
                                     ["Watermark", "Yes", "No", "No", "No"],
-                                    ["API access", "—", "—", "✓", "✓"],
+                                    ["API access", "—", "✓", "✓", "✓"],
                                     ["Priority processing", "—", "✓", "✓", "✓"],
                                     ["Team accounts", "—", "—", "—", "✓"],
                                     ["White-label", "—", "—", "—", "✓"],
